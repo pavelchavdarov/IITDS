@@ -45,19 +45,18 @@ public class IitDocumentPackage extends IitEntity{
         return docpackes;
     }
     
-    static java.sql.Array array_wrapper(
-        String typeName,
-        Object elements
-    ) throws java.sql.SQLException {
-        java.oracle.jdbc.OracleDriver ora = new oracle.jdbc.OracleDriver();
-        java.sql.Connection conn = ora.defaultConnection();
-        oracle.jdbc.OracleConnection oraConn =
-            (oracle.jdbc.OracleConnection)conn;
-        /* Yeah - typeName have to be UPPERCASE, really. */
-        java.sql.Array arr = 
-            oraConn.createARRAY(typeName.toUpperCase(), elements);
-        return arr;
-    }
+//    static java.sql.Array array_wrapper(
+//        String typeName,
+//        Object elements
+//    ) throws java.sql.SQLException {
+//        oracle.jdbc.OracleDriver ora = new oracle.jdbc.OracleDriver();
+//        java.sql.Connection conn = ora.defaultConnection();
+//        oracle.jdbc.OracleConnection oraConn =
+//            (oracle.jdbc.OracleConnection)conn;
+//        java.sql.Array arr = 
+//            oraConn.createARRAY(typeName.toUpperCase(), elements);
+//        return arr;
+//    }
     
     public static java.sql.Array getPackagesWrapped(String token)
     throws java.sql.SQLException {
@@ -96,4 +95,6 @@ class DocPackage {
         this.type = type;
     }
 }
+
+
 

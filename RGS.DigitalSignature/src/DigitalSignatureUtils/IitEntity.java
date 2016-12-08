@@ -50,7 +50,6 @@ public class IitEntity {
     public static void setGson(Gson gson) {
         IitEntity.gson = gson;
     }
-
     
     protected String SessionToken;
 
@@ -72,7 +71,18 @@ public class IitEntity {
         this.SessionToken = SessionToken;
     }
 
-    
+    static java.sql.Array array_wrapper(
+        String typeName,
+        Object elements
+    ) throws java.sql.SQLException {
+        oracle.jdbc.OracleDriver ora = new oracle.jdbc.OracleDriver();
+        java.sql.Connection conn = ora.defaultConnection();
+        oracle.jdbc.OracleConnection oraConn =
+            (oracle.jdbc.OracleConnection)conn;
+        java.sql.Array arr = 
+            oraConn.createARRAY(typeName.toUpperCase(), elements);
+        return arr;
+    }
     
     
     

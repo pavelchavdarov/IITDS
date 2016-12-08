@@ -25,7 +25,7 @@ public class IITDAO
     private Gson gson;
     
     private String SessionToken;
-    private IitDocumentPackage[] packageList;
+    //private IitDocumentPackage[] packageList;
     private IitDocumentPackage curreantPackage;
     
     private IitAuth     auth;
