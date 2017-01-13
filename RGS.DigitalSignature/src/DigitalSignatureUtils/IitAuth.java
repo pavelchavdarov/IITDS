@@ -15,9 +15,9 @@ import java.util.logging.Logger;
  */
 public class IitAuth extends IitEntity{
 
-//    IitAuth(){
-//        super();
-//    }
+    IitAuth(){
+        super();
+    }
     
     
     public static void makeAuthEx(String login, String password) throws Exception

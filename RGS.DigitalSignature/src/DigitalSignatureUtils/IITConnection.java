@@ -9,7 +9,9 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
@@ -20,12 +22,14 @@ import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.sql.Blob;
+import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.net.ssl.HttpsURLConnection;
 import javax.sql.rowset.serial.SerialBlob;
+import oracle.jdbc.OracleDriver;
 
 /**
  *
@@ -50,12 +54,12 @@ public class IITConnection implements IITConnectionInterface{
         int res_code = 0;
         // пока заглушка
 //        proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("10.95.17.46", 8080));
-//        proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("10.95.5.19", 8888));
+        proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("10.95.5.19", 8888));
 
         url = new URL(pUrl);
 
         if (res_code == 0){
-            conn = (HttpsURLConnection) url.openConnection(Proxy.NO_PROXY);
+            conn = (HttpsURLConnection) url.openConnection(proxy);
             conn.setDoInput(true);
             conn.setDoOutput(true);
             conn.setUseCaches(false);
@@ -105,27 +109,56 @@ public class IITConnection implements IITConnectionInterface{
     
     public Blob getFile(String fileName) throws Exception{
         
-        ByteBuffer bbuf = ByteBuffer.allocate(1);
-        ArrayList<ByteBuffer> byteArr = new ArrayList<ByteBuffer>();
-        Blob file = null;
-        if (conn != null) {
-            ReadableByteChannel rbc = Channels.newChannel(conn.getInputStream());
-            while (rbc.read(bbuf) != -1 ){
-                byteArr.add(bbuf);
-            }
-            byte[] arr = new byte[byteArr.size()];
-            for(int i = 0; i < byteArr.size(); i++ ){
-                arr[i] = byteArr.get(i).array()[0];
-            }
-            try {
-                file = new SerialBlob(arr);
-            } catch (SQLException e) {
-                System.err.println(e.getMessage());
-            }
-//            FileOutputStream fos = new FileOutputStream(fileName);
-  //          fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
-            return file;
+        oracle.jdbc.OracleConnection oraConn =
+                (oracle.jdbc.OracleConnection)new OracleDriver().defaultConnection();
+//                (oracle.jdbc.OracleConnection)DriverManager.getConnection("jdbc:oracle:thin:@test03.msk.russb.org:1521:rbotest2","ibs","12ibs");
+
+        oracle.sql.BLOB retBlob =
+                oracle.sql.BLOB.createTemporary(oraConn,
+                                                true,
+                                                oracle.sql.BLOB.DURATION_SESSION);
+        
+        InputStream inStream = conn.getInputStream();
+        OutputStream outStream = retBlob.setBinaryStream(1);
+
+        String resStr = "";
+        resStr = String4CFT.setPar(resStr,"error", "");
+        // дополним дло 1000 символов пробелами справа
+        resStr = String.format("%-1000s", resStr);
+        byte[] buf = resStr.getBytes();
+        outStream.write(buf);
+        
+                
+        byte[] b = new byte[1];
+        while(inStream.read(b) != -1){
+            outStream.write(b);
         }
-        return null;
+        outStream.flush();
+        System.out.println(retBlob);
+        return retBlob;
+//        outStream.write(inStream.read(b));
+
+//        ByteBuffer bbuf = ByteBuffer.allocate(1);
+//        ArrayList<ByteBuffer> byteArr = new ArrayList<ByteBuffer>();
+//        Blob file = null;
+//        if (conn != null) {
+//            ReadableByteChannel rbc = Channels.newChannel(conn.getInputStream());
+//            while (rbc.read(bbuf) != -1 ){
+//                byteArr.add(bbuf);
+//            }
+//            byte[] arr = new byte[byteArr.size()];
+//            for(int i = 0; i < byteArr.size(); i++ ){
+//                arr[i] = byteArr.get(i).array()[0];
+//            }
+//            try {
+//                file = new SerialBlob(arr);
+//            } catch (SQLException e) {
+//                System.err.println(e.getMessage());
+//            }
+////            FileOutputStream fos = new FileOutputStream(fileName);
+//  //          fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+//            return file;
+       // }
+        //return null;
     }
 }

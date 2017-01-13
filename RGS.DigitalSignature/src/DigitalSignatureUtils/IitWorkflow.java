@@ -10,6 +10,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import java.io.IOException;
 import java.sql.Blob;
+import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -136,42 +137,42 @@ public class IitWorkflow extends IitWorkflowData{
         String[] docsData = uDocData.split("\\|\\|");
         String[] addrsData = uAddrData.split("\\|\\|");
 
-        consumer_data.setLast_name(String4CFT.getPar(uData, "last_name"));
-        consumer_data.setFirst_name(String4CFT.getPar(uData, "first_name"));
-        consumer_data.setMiddle_name(String4CFT.getPar(uData, "middle_name"));
-        consumer_data.setGender(String4CFT.getPar(uData, "gender"));
-        consumer_data.setBirthed(String4CFT.getPar(uData, "birthed"));
-        consumer_data.setPhone(String4CFT.getPar(uData, "phone"));
-//        consumer_data.setSnils(userData[6]);
+        HashMap<String, String> map = String4CFT.getMap(uData);
+        
+        consumer_data.setLast_name(map.get("last_name"));
+        consumer_data.setFirst_name(map.get("first_name"));
+        consumer_data.setMiddle_name(map.get("middle_name"));
+        consumer_data.setGender(map.get("gender"));
+        consumer_data.setBirthed(map.get("birthed"));
+        consumer_data.setPhone(map.get("phone"));
+        consumer_data.setSnils(map.get("snils"));
 
 
         for(String doc : docsData) {
-            if(doc.isEmpty())
-                continue;
+            if(doc.isEmpty()) continue;
             
-//            String[] docData = doc.split("~");
+            map = String4CFT.getMap(doc);
             IitIdentity identity = new IitIdentity();
-            identity.setType(String4CFT.getPar(doc, "type"));
-            identity.setSeries(String4CFT.getPar(doc, "series"));
-            identity.setNumber(String4CFT.getPar(doc, "number"));
-            identity.setIssue_code(String4CFT.getPar(doc, "issue_code"));
-            identity.setIssue(String4CFT.getPar(doc, "issue"));
-            identity.setIssued(String4CFT.getPar(doc, "issued"));
+            identity.setType(map.get("type"));
+            identity.setSeries(map.get("series"));
+            identity.setNumber(map.get("number"));
+            identity.setIssue_code(map.get("issue_code"));
+            identity.setIssue(map.get("issue"));
+            identity.setIssued(map.get("issued"));
             consumer_data.identities.add(identity);
         }
 
         for(String addr : addrsData) {
-            if(addr.isEmpty())
-                continue;
+            if(addr.isEmpty()) continue;
             
-//            String[] addrData = addr.split("~");
+            map = String4CFT.getMap(addr);
             IitAddress address = new IitAddress();
-            address.setType(String4CFT.getPar(addr, "type"));
-            address.setRegion(String4CFT.getPar(addr, "region"));
-            address.setCity(String4CFT.getPar(addr, "city"));
-            address.setStreet(String4CFT.getPar(addr, "street"));
-            address.setHouse(String4CFT.getPar(addr, "house"));
-            address.setApartment(String4CFT.getPar(addr, "apartmen"));
+            address.setType(map.get("type"));
+            address.setRegion(map.get("region"));
+            address.setCity(map.get("city"));
+            address.setStreet(map.get("street"));
+            address.setHouse(map.get("house"));
+            address.setApartment(map.get("apartmen"));
             consumer_data.addresses.add(address);
         }
 
@@ -180,7 +181,7 @@ public class IitWorkflow extends IitWorkflowData{
         iitConn = new IITConnection(url_str, method, "application/json");
         int i = iitConn.sendData(json_str);
         if (i==0){
-            //System.out.println("Consumer send...");
+            System.err.println("Consumer send...");
             responce = iitConn.getData();
             res = 0;
 
