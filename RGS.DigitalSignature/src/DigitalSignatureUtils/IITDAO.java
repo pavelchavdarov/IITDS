@@ -29,7 +29,7 @@ public class IITDAO
 //    static String url = "https://iitcloud-demo.iitrust.ru";
 //    static String method = "POST";
 //    static String page = "api/auth/";
-    private IITConnection conn;
+    private IITConnectionInterface conn;
     private Gson gson;
     
     private String SessionToken;
@@ -69,17 +69,21 @@ public class IITDAO
 
 //////////////////////////////////////
     public String getDocPackagesList() throws Exception {
-        String url = "https://iitcloud-demo.iitrust.ru";
+        String url = "http://iitcloud-demo.iitrust.ru";
         String method = "GET";
         String page = "api/agent/document/package";
         java.lang.reflect.Type itemsArrType = new TypeToken<IitDocumentPackage[]>() {}.getType();
 
         String res="";
         String url_str = String.format("%s/%s?token=%s", url, page,SessionToken);
-        
+        System.err.println(url_str);
 
             conn = new IITConnection(url_str, method, "application/json");
-            packageList = gson.fromJson(conn.getData(), itemsArrType);
+            System.err.println("getting packageList...");
+            String answer = conn.getData();
+            System.err.println("response: "+ answer);
+            packageList = gson.fromJson(answer, itemsArrType);
+            System.err.println(packageList.length);
             for (IitDocumentPackage p : packageList){
                 res = res + "||" + "^~pkg~" + String.valueOf(p.getId()) + "~^" + "||";
             }
@@ -134,7 +138,7 @@ public class IITDAO
             dao.auth.makeAuthEx("deprgs-demo", "321qwe654");
             // только для getDocPackagesList()
             dao.SessionToken = dao.auth.SessionToken;
-            dao.getDocPackagesList();
+            System.err.println("package list: " + dao.getDocPackagesList());
         //        DAO.workflow = new IitWorkflow(DAO.auth.SessionToken);
             //dao.workflow = new IitWorkflow();
             dao.workflow.createWorkflow(dao.packageList[0].getId());
@@ -153,6 +157,7 @@ public class IITDAO
             
         }catch(Exception e){
            System.err.println(e.getMessage());
+           System.err.println(e);
             
             resStr = String4CFT.setPar(resStr,"error", e.getMessage());
             if (resStr.length()>=1000){

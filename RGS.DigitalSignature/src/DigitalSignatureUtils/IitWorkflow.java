@@ -61,7 +61,7 @@ public class IitWorkflow extends IitWorkflowData{
     };
     
     public String createWorkflow(int docPackageId){
-        System.out.println("Creating workflow...");
+        System.err.println("Creating workflow...");
         
         this.method = "POST";
         this.uri = "api/workflow";
