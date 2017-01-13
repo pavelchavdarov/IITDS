@@ -49,3 +49,7 @@ Temporary Items
 *.class
 RGS.DigitalSignature/dist/lib/ojdbc6.jar
 *.class
+RGS.DigitalSignature/nbproject/private/private.xml
+RGS.DigitalSignature/dist/RGS.DigitalSignature.jar
+RGS.DigitalSignature/build/classes/DigitalSignatureUtils/IitDocumentPackage$1.class
+RGS.DigitalSignature/build/built-jar.properties

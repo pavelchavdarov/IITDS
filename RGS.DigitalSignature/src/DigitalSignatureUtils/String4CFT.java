@@ -3,14 +3,17 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
+
 package DigitalSignatureUtils;
 
 /**
  *
- * @author p.chavdarov
+ * @author Павел
  */
-public enum fileSchema{
-        signatureAgreement,
-        certificateReportOps,
-        certificateReportOpsHsm
+public class String4CFT {
+    static String setPar(String target, String key, String value){
+        if (target.isEmpty())
+            target = "";
+        return target + "^~" + key + "~" + value + "~^";
     }
+}

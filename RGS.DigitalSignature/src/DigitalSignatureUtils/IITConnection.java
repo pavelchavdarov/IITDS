@@ -16,11 +16,16 @@ import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
 import java.net.Proxy;
 import java.net.URL;
+import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
+import java.sql.Blob;
+import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.net.ssl.HttpsURLConnection;
+import javax.sql.rowset.serial.SerialBlob;
 
 /**
  *
@@ -29,82 +34,61 @@ import javax.net.ssl.HttpsURLConnection;
 
 public class IITConnection implements IITConnectionInterface{
 
-    private HttpURLConnection conn;
+    private HttpsURLConnection conn;
     private Proxy proxy;
     private String connMethod;
 
+    public IITConnection(String pUrl, String pMethod, String pContentType) throws Exception {
+        this.getConnection(pUrl, pMethod, pContentType);
+    }
+
+    
+    
     @Override
-    public HttpURLConnection getConnection(String pUrl, String pMethod, String pContentType){
+    public HttpURLConnection getConnection(String pUrl, String pMethod, String pContentType) throws Exception{
         URL url = null;
         int res_code = 0;
         // пока заглушка
-        proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("10.95.17.46", 8080));
-        try{
-                url = new URL(pUrl);
-        }catch(MalformedURLException mx){
-                Logger.getLogger("https_conn").log(Level.SEVERE, null, mx);
-                res_code = 1;
-        }
-        try {
-            if (res_code == 0){
-                conn = (HttpURLConnection) url.openConnection(Proxy.NO_PROXY);
-                conn.setDoInput(true);
-                conn.setDoOutput(true);
-                conn.setUseCaches(false);
-                conn.setConnectTimeout(60000);
-                conn.setRequestMethod(pMethod);
-                conn.setRequestProperty("Content-Type", pContentType/*"application/json"*/);
-                conn.setRequestProperty("charset", "utf-8");
-            }
-            else
-                res_code = 1;
-        } catch (IOException ex){
-                Logger.getLogger("https_conn").log(Level.SEVERE, null, ex);
-                res_code = 1;
-        }
+//        proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("10.95.17.46", 8080));
+//        proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("10.95.5.19", 8888));
+
+        url = new URL(pUrl);
+
         if (res_code == 0){
-//            System.out.println("Connection done...");
+            conn = (HttpsURLConnection) url.openConnection(Proxy.NO_PROXY);
+            conn.setDoInput(true);
+            conn.setDoOutput(true);
+            conn.setUseCaches(false);
+            conn.setConnectTimeout(60000);
+            conn.setRequestMethod(pMethod);
+            conn.setRequestProperty("Content-Type", pContentType/*"application/json"*/);
+            conn.setRequestProperty("charset", "utf-8");
+        }
+        else
+            res_code = 1;
+
+        if (res_code == 0){
+            System.err.println("Connection done...");
             return conn;
         }
         else
-            System.out.println("Connection error!!!");
+            System.err.println("Connection error!!!");
         return null;
     }
 
     @Override
-    public int sendData(String pData) throws IOException{
-        if (conn == null)
-            return 1;
+    public int sendData(String pData) throws Exception{
+
         OutputStreamWriter outstrean = new OutputStreamWriter (conn.getOutputStream (), "UTF-8");
         BufferedWriter wr = new BufferedWriter (outstrean);
         wr.write(pData);
         wr.flush();
-        
 
-        return 0; //conn.getResponseCode();
-
-//		byte[] byteData = null;
-//		try{
-//			byteData = pData.getBytes("UTF-8");
-//		}catch (UnsupportedEncodingException ee){
-//			Logger.getLogger("https_conn").log(Level.SEVERE, null, ee);
-//			return -1;
-//		}
-//		conn.setRequestProperty("Content-Length", Integer.toString(byteData.length));
-//		try {
-//			OutputStream os = conn.getOutputStream();
-//			os.write(byteData);
-//			os.close();
-//			return conn.getResponseCode();
-//		} catch (IOException ex) {
-//			Logger.getLogger("https_conn").log(Level.SEVERE, null, ex);
-//			return -1;
-//		}
-
+        return 0;
     } 
   
     @Override
-    public String getData() throws IOException{
+    public String getData() throws Exception{
         String result="";
         String inputLine;
         
@@ -119,13 +103,29 @@ public class IITConnection implements IITConnectionInterface{
         return result;
     }
     
-    public String getFile(String fileName) throws IOException{
-            
+    public Blob getFile(String fileName) throws Exception{
+        
+        ByteBuffer bbuf = ByteBuffer.allocate(1);
+        ArrayList<ByteBuffer> byteArr = new ArrayList<ByteBuffer>();
+        Blob file = null;
         if (conn != null) {
             ReadableByteChannel rbc = Channels.newChannel(conn.getInputStream());
-            FileOutputStream fos = new FileOutputStream(fileName);
-            fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+            while (rbc.read(bbuf) != -1 ){
+                byteArr.add(bbuf);
+            }
+            byte[] arr = new byte[byteArr.size()];
+            for(int i = 0; i < byteArr.size(); i++ ){
+                arr[i] = byteArr.get(i).array()[0];
+            }
+            try {
+                file = new SerialBlob(arr);
+            } catch (SQLException e) {
+                System.err.println(e.getMessage());
+            }
+//            FileOutputStream fos = new FileOutputStream(fileName);
+  //          fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+            return file;
         }
-        return fileName;
+        return null;
     }
 }

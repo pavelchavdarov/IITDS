@@ -15,63 +15,84 @@ import java.util.logging.Logger;
  */
 public class IitAuth extends IitEntity{
 
-    IitAuth(){
-        super();
-    }
-    public String makeAuth(String login, String password)
+//    IitAuth(){
+//        super();
+//    }
+    
+    
+    public static void makeAuthEx(String login, String password) throws Exception
     {
-        this.method = "POST";
-        this.page = "api/auth";
-        IitToken token;
-        authRequest auth  = new authRequest();
+        Init();
         
-        String res="";
-        this.url_str = String.format("%s/%s", this.url, this.page);
-        auth.setUsername(login);
-        auth.setPassword(password);
+        String method = "POST";
+        uri = "api/auth/";
+        IitToken token;
+        authRequest auth  = new authRequest(login, password);
+        //String res = "";
+        
+        String url_str = String.format("%s/%s", IitAuth.url, uri);
         String json_str = gson.toJson(auth, authRequest.class);
 
-        conn = new IITConnection();
-        conn.getConnection(this.url_str, this.method, "application/json");
+        iitConn = new IITConnection(url_str, method, "application/json");
+
+        iitConn.sendData(json_str);
+        token = gson.fromJson(iitConn.getData(), IitToken.class);
+
+        SessionToken = token.getToken();//conn.getData();
+        System.err.println("Authentication result: token " + SessionToken);
+        //res =  setPar(res,"token", SessionToken);//"Authentication result: token passed";
+        //res = setPar(res,"error", "");
+    }
+    
+    public static String makeAuth(String login, String password)
+    {
+        Init();
+        
+        String method = "POST";
+        uri = "api/auth/";
+        IitToken token;
+        authRequest auth  = new authRequest(login, password);
+        String res = "";
+        
+        String url_str = String.format("%s/%s", IitAuth.url, uri);
+        String json_str = gson.toJson(auth, authRequest.class);
+
+        
         try{
-            int i = conn.sendData(json_str);
-            if (i==0){
-                token = gson.fromJson(conn.getData(), IitToken.class);
-                SessionToken = token.getToken();//conn.getData();
-                System.out.println("Authentication result: token passed");
-                res = SessionToken;
-            }
-            else
-                res = "null";
-        }catch(IOException ex){
-            Logger.getLogger("http_conn").log(Level.SEVERE, null, ex);
-            StackTraceElement[] trace = ex.getStackTrace();
-            for (StackTraceElement st : trace){
-            	res += st.toString()+"\n";
-            }
-            res += ex.getMessage();
+            iitConn = new IITConnection(url_str, method, "application/json");
+            
+            iitConn.sendData(json_str);
+            token = gson.fromJson(iitConn.getData(), IitToken.class);
+
+            SessionToken = token.getToken();//conn.getData();
+            System.out.println("Authentication result: token passed");
+            res =  String4CFT.setPar(res,"token", SessionToken);//"Authentication result: token passed";
+            res = String4CFT.setPar(res,"error", "");
+        }catch(Exception ex){
+            System.err.println(ex.getMessage());
+            SessionToken = null;
+            res = String4CFT.setPar(res,"error", ex.getMessage());
         }
         return res;
     }
-    public static String Authenticate(String userName, String password){
-               
-        IitAuth auth = new IitAuth();
-        return auth.makeAuth("deprgs-demo", "321qwe654");
-    }
+    
+    
 }
-
+/**
+ * Класс создал для описания структуры json при аутентификации
+ * @author Павел
+ */
 class authRequest {
     
     private String username;
     private String password;
 
-    authRequest(){
-    }
-    
+    authRequest(){}
     authRequest(String userName, String password){
         this.setUsername(userName);
         this.setPassword(password);
     }
+    
     /**
      * Get the value of password
      *
@@ -80,7 +101,6 @@ class authRequest {
     public String getPassword() {
         return password;
     }
-
     /**
      * Set the value of password
      *
@@ -110,27 +130,18 @@ class authRequest {
     }
 
 }
-
+/**
+ * Класс создал для описания структуры json при получении токена
+ * @author Павел
+ */
 class IitToken {
-    
     private String token;
-
-    /**
-     * Get the value of token
-     *
-     * @return the value of token
-     */
-    public String getToken() {
+    
+    public String getToken(){
         return token;
     }
-
-    /**
-     * Set the value of token
-     *
-     * @param token new value of token
-     */
-    public void setToken(String token) {
-        this.token = token;
+    
+    public void setToken(String pToken){
+        token = pToken;
     }
-
 }

@@ -7,13 +7,15 @@ package DigitalSignatureUtils;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.sql.Blob;
 
 /**
  *
  * @author p.chavdarov
  */
 interface IITConnectionInterface{
-  public HttpURLConnection getConnection(String pUrl, String pMethod, String pContentType);
-  public int sendData(String pData) throws IOException;
-  public String getData() throws IOException;
+  public HttpURLConnection getConnection(String pUrl, String pMethod, String pContentType) throws Exception;
+  public int sendData(String pData) throws Exception;
+  public String getData() throws Exception;
+  public Blob getFile(String fileName) throws Exception;
 }
