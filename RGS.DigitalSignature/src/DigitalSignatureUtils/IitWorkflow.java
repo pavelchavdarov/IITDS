@@ -118,7 +118,10 @@ public class IitWorkflow extends IitWorkflowData{
 
             String uData, String uDocData, String uAddrData
     ) throws Exception{
-        System.out.println("Creating client...");
+        System.err.println("Creating client...");
+        System.err.println("uData: " + uData);
+        System.err.println("uDocData: " + uDocData);
+        System.err.println("uAddrData: " + uAddrData);
         
 //        String url = "https://iitcloud-demo.iitrust.ru";
         this.method = "POST";
@@ -133,36 +136,42 @@ public class IitWorkflow extends IitWorkflowData{
         String[] docsData = uDocData.split("\\|\\|");
         String[] addrsData = uAddrData.split("\\|\\|");
 
-        consumer_data.setLast_name(userData[0]);
-        consumer_data.setFirst_name(userData[1]);
-        consumer_data.setMiddle_name(userData[2]);
-        consumer_data.setGender(userData[5]);
-        consumer_data.setBirthed(userData[3]);
-        consumer_data.setPhone(userData[4]);
+        consumer_data.setLast_name(String4CFT.getPar(uData, "last_name"));
+        consumer_data.setFirst_name(String4CFT.getPar(uData, "first_name"));
+        consumer_data.setMiddle_name(String4CFT.getPar(uData, "middle_name"));
+        consumer_data.setGender(String4CFT.getPar(uData, "gender"));
+        consumer_data.setBirthed(String4CFT.getPar(uData, "birthed"));
+        consumer_data.setPhone(String4CFT.getPar(uData, "phone"));
 //        consumer_data.setSnils(userData[6]);
 
 
         for(String doc : docsData) {
-            String[] docData = doc.split("~");
+            if(doc.isEmpty())
+                continue;
+            
+//            String[] docData = doc.split("~");
             IitIdentity identity = new IitIdentity();
-            identity.setType(docData[0]);
-            identity.setSeries(docData[1]);
-            identity.setNumber(docData[2]);
-            identity.setIssue_code(docData[3]);
-            identity.setIssue(docData[4]);
-            identity.setIssued(docData[5]);
+            identity.setType(String4CFT.getPar(doc, "type"));
+            identity.setSeries(String4CFT.getPar(doc, "series"));
+            identity.setNumber(String4CFT.getPar(doc, "number"));
+            identity.setIssue_code(String4CFT.getPar(doc, "issue_code"));
+            identity.setIssue(String4CFT.getPar(doc, "issue"));
+            identity.setIssued(String4CFT.getPar(doc, "issued"));
             consumer_data.identities.add(identity);
         }
 
         for(String addr : addrsData) {
-            String[] addrData = addr.split("~");
+            if(addr.isEmpty())
+                continue;
+            
+//            String[] addrData = addr.split("~");
             IitAddress address = new IitAddress();
-            address.setType(addrData[0]);
-            address.setRegion(addrData[1]);
-            address.setCity(addrData[2]);
-            address.setStreet(addrData[3]);
-            address.setHouse(addrData[4]);
-            address.setApartment(addrData[5]);
+            address.setType(String4CFT.getPar(addr, "type"));
+            address.setRegion(String4CFT.getPar(addr, "region"));
+            address.setCity(String4CFT.getPar(addr, "city"));
+            address.setStreet(String4CFT.getPar(addr, "street"));
+            address.setHouse(String4CFT.getPar(addr, "house"));
+            address.setApartment(String4CFT.getPar(addr, "apartmen"));
             consumer_data.addresses.add(address);
         }
 
