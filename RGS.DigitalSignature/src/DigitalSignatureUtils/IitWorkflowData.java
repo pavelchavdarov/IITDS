@@ -5,6 +5,7 @@
  */
 package DigitalSignatureUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -28,11 +29,13 @@ public class IitWorkflowData extends IitEntity{
     protected IitRegisrationDocument[] regDocs;
 
     IitWorkflowData(){
-        super();
+        Init();
+        //super();
     }
     
     IitWorkflowData(String token){
-        super(token);
+        Init();
+        SessionToken = token;
     }
     
     public int getId() {
@@ -281,9 +284,16 @@ class IitConsumer {
     private String email;
     private String snils;
     private String inn;
-    private IitIdentity[] identities;
-    private IitAddress[] addresses;
+    protected List<IitIdentity> identities;
+    protected List<IitAddress> addresses;
 
+    public IitConsumer() {
+        identities = new ArrayList<IitIdentity>();
+        addresses = new ArrayList<IitAddress>();
+    }
+
+    
+    
     public String getId() {
         return id;
     }
@@ -372,21 +382,21 @@ class IitConsumer {
         this.inn = inn;
     }
 
-    public IitIdentity[] getIdentities() {
-        return identities;
-    }
-
-    public void setIdentities(IitIdentity[] identities) {
-        this.identities = identities;
-    }
-
-    public IitAddress[] getAddresses() {
-        return addresses;
-    }
-
-    public void setAddresses(IitAddress[] addresses) {
-        this.addresses = addresses;
-    }
+//    public IitIdentity[] getIdentities() {
+//        return identities;
+//    }
+//
+//    public void setIdentities(IitIdentity[] identities) {
+//        this.identities = identities;
+//    }
+//
+//    public IitAddress[] getAddresses() {
+//        return addresses;
+//    }
+//
+//    public void setAddresses(IitAddress[] addresses) {
+//        this.addresses = addresses;
+//    }
 }
 
 

@@ -9,6 +9,7 @@ package DigitalSignatureUtils;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import java.io.IOException;
+import java.sql.Blob;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -62,18 +63,18 @@ public class IitWorkflow extends IitWorkflowData{
         System.out.println("Creating workflow...");
         
         this.method = "POST";
-        this.page = "api/workflow";
+        this.uri = "api/workflow";
         
-        String res;// = "";
-        this.url_str = String.format("%s/%s?token=%s", this.url, this.page, this.SessionToken);
+        String res= "";
+        this.url_str = String.format("%s/%s?token=%s", this.url, this.uri, this.SessionToken);
         String json_str = String.format("{\"package\":%s}", docPackageId);
         
-        conn = new IITConnection();
-        conn.getConnection(this.url_str, this.method, "application/json");
+        
         try{
-            int i = conn.sendData(json_str);
+            iitConn = new IITConnection(this.url_str, this.method, "application/json");
+            int i = iitConn.sendData(json_str);
             if (i==0){
-                this.initialise(gson.fromJson(conn.getData(), IitWorkflow.class));
+                this.initialise(gson.fromJson(iitConn.getData(), IitWorkflow.class));
                 this.setPackageId(docPackageId);
                 
 //                System.out.println(String.format("Workflow state: %s", this.getState()));
@@ -84,7 +85,7 @@ public class IitWorkflow extends IitWorkflowData{
             else
                 res = null;
 //            System.out.println(String.format("Connection result: %s",Integer.toString(i)));
-        }catch(IOException ex){
+        }catch(Exception ex){
             Logger.getLogger("http_conn").log(Level.SEVERE, null, ex);
             res = ex.toString();
         }
@@ -94,217 +95,202 @@ public class IitWorkflow extends IitWorkflowData{
     }
     
     public int createClient(
-        String last_name,
-        String first_name,
-        String middle_name,
-        String gender,
-        String birthed,
-        String phone,
-        
-        String dco_type,
-        String doc_series,
-        String doc_num,
-        String issue_code,
-        String issuer,
-        String issued,
-        
-        String addr_type,
-        String addr_region,
-        String addr_city,
-        String addr_street,
-        String addr_house,
-        String addr_apartment
-    ){
+//        String last_name,
+//        String first_name,
+//        String middle_name,
+//        String gender,
+//        String birthed,
+//        String phone,
+//
+//        String dco_type,
+//        String doc_series,
+//        String doc_num,
+//        String issue_code,
+//        String issuer,
+//        String issued,
+//
+//        String addr_type,
+//        String addr_region,
+//        String addr_city,
+//        String addr_street,
+//        String addr_house,
+//        String addr_apartment
+
+            String uData, String uDocData, String uAddrData
+    ) throws Exception{
         System.out.println("Creating client...");
         
 //        String url = "https://iitcloud-demo.iitrust.ru";
         this.method = "POST";
-        this.page = String.format("api/workflow/%s/consumer/", this.getId());
+        this.uri = String.format("api/workflow/%s/consumer/", this.getId());
         
         int res;// = 0;
-        String url_str = String.format("%s/%s?token=%s", this.url, this.page, this.SessionToken);
+        String url_str = String.format("%s/%s?token=%s", this.url, this.uri, this.SessionToken);
         String responce = "";
         IitConsumer consumer_data = new IitConsumer();
-        
-        consumer_data.setLast_name(last_name);
-        consumer_data.setFirst_name(first_name);
-        consumer_data.setMiddle_name(middle_name);
-        consumer_data.setGender(gender);
-        consumer_data.setBirthed(birthed);
-        consumer_data.setPhone(phone);
-                
-            IitIdentity identity = new IitIdentity();
-            identity.setType(dco_type);
-            identity.setSeries(doc_series);
-            identity.setNumber(doc_num);
-            identity.setIssue_code(issue_code);
-            identity.setIssue(issuer);
-            identity.setIssued(issued);
-            IitIdentity[] identities = {identity};
-            
-            
-        consumer_data.setIdentities(identities);
-        
-            IitAddress address = new IitAddress();
-            address.setType(addr_type);
-            address.setRegion(addr_region);
-            address.setCity(addr_city);
-            address.setStreet(addr_street);
-            address.setHouse(addr_house);
-            address.setApartment(addr_apartment);
-            IitAddress[] addresses = {address};
-        
-        consumer_data.setAddresses(addresses);
 
-            
+        String[] userData = uData.split("~");
+        String[] docsData = uDocData.split("\\|\\|");
+        String[] addrsData = uAddrData.split("\\|\\|");
+
+        consumer_data.setLast_name(userData[0]);
+        consumer_data.setFirst_name(userData[1]);
+        consumer_data.setMiddle_name(userData[2]);
+        consumer_data.setGender(userData[5]);
+        consumer_data.setBirthed(userData[3]);
+        consumer_data.setPhone(userData[4]);
+//        consumer_data.setSnils(userData[6]);
+
+
+        for(String doc : docsData) {
+            String[] docData = doc.split("~");
+            IitIdentity identity = new IitIdentity();
+            identity.setType(docData[0]);
+            identity.setSeries(docData[1]);
+            identity.setNumber(docData[2]);
+            identity.setIssue_code(docData[3]);
+            identity.setIssue(docData[4]);
+            identity.setIssued(docData[5]);
+            consumer_data.identities.add(identity);
+        }
+
+        for(String addr : addrsData) {
+            String[] addrData = addr.split("~");
+            IitAddress address = new IitAddress();
+            address.setType(addrData[0]);
+            address.setRegion(addrData[1]);
+            address.setCity(addrData[2]);
+            address.setStreet(addrData[3]);
+            address.setHouse(addrData[4]);
+            address.setApartment(addrData[5]);
+            consumer_data.addresses.add(address);
+        }
+
         String json_str = gson.toJson(consumer_data, IitConsumer.class);
         System.out.println("Client json: "+json_str);
-        conn = new IITConnection();
-        conn.getConnection(url_str, method, "application/json");
-        try{
-            int i = conn.sendData(json_str);
-            if (i==0){
-                //System.out.println("Consumer send...");
-                responce = conn.getData();
-                res = 0;
-                
-            }
-            else
-                res = 1;
-//            System.out.println(String.format("Connection result: %s",Integer.toString(i)));
-        }catch(IOException ex){
-            Logger.getLogger("http_conn").log(Level.SEVERE, null, ex);
-            res = 1;
+        iitConn = new IITConnection(url_str, method, "application/json");
+        int i = iitConn.sendData(json_str);
+        if (i==0){
+            //System.out.println("Consumer send...");
+            responce = iitConn.getData();
+            res = 0;
+
         }
+        else
+            res = 1;
+//            System.out.println(String.format("Connection result: %s",Integer.toString(i)));
+        
         this.consumerInstance = consumer_data;
         return res;
     }
  
     // ???
-    public String getClientInfo(){
+    public String getClientInfo() throws Exception{
         System.out.println("Getting client info...");
         
 //        String url = "https://iitcloud-demo.iitrust.ru";
         this.method = "GET";
-        this.page = String.format("api/workflow/%s/consumer/", id);
+        this.uri = String.format("api/workflow/%s/consumer/", id);
         
         String responce;// = "";
-        String ret;// = "";
-        this.url_str = String.format("%s/%s?token=%s", this.url, this.page, this.SessionToken);
-        conn = new IITConnection();
-        conn.getConnection(url_str, this.method, "application/json");
-        
-        try{
-            responce = conn.getData();
+        String ret = "";
+        this.url_str = String.format("%s/%s?token=%s", this.url, this.uri, this.SessionToken);
+        iitConn = new IITConnection(url_str, this.method, "application/json");
+
+        responce = iitConn.getData();
 //            System.out.println(String.format("request result: %s", res));
-            this.consumerInstance = gson.fromJson(responce, IitConsumer.class);
+        this.consumerInstance = gson.fromJson(responce, IitConsumer.class);
 //            System.out.println(String.format("Workflow package: %s", this.getPackageId()));
-            ret = this.consumerInstance.getState();
-        }catch(IOException ex){
-            Logger.getLogger("http_conn").log(Level.SEVERE, null, ex);
-            ret = ex.toString();
-        }
+        ret = this.consumerInstance.getState();
+
         return ret;
     }
     
-    public String getWorkflowState(){
+    public String getWorkflowState() throws Exception{
         System.out.println("Getting workflow status...");
         
         //String url = "https://iitcloud-demo.iitrust.ru";
         this.method = "GET";
-        this.page = String.format("api/workflow/%s", this.getId());
+        this.uri = String.format("api/workflow/%s", this.getId());
         
         String responce;// = "";
-        String ret;// = "";
-        this.url_str = String.format("%s/%s?token=%s", this.url, this.page, this.SessionToken);
-        conn = new IITConnection();
-        conn.getConnection(url_str, method, "application/json");
+        String ret = "";
+        this.url_str = String.format("%s/%s?token=%s", this.url, this.uri, this.SessionToken);
+        iitConn = new IITConnection(url_str, method, "application/json");
         
-        try{
-            responce = conn.getData();
+
+        responce = iitConn.getData();
 //            System.out.println(String.format("request result: %s", res));
-            this.initialise(gson.fromJson(responce, IitWorkflow.class));
+        this.initialise(gson.fromJson(responce, IitWorkflow.class));
 //            System.out.println(String.format("Workflow package: %s", this.getPackageId()));
-            ret = this.getState();
-        }catch(IOException ex){
-            Logger.getLogger("http_conn").log(Level.SEVERE, null, ex);
-            ret = ex.toString();
-        }
+        ret = this.getState();
+
         return ret;
     }
     // ???
-    public String setWorkflowState(String status){
+    public String setWorkflowState(String status) throws Exception{
         System.out.println("Setting workflow state '"+status+"'");
         
 //        String url = "https://iitcloud-demo.iitrust.ru";
         this.method = "PUT";
-        this.page = String.format("api/workflow/%s", this.id);
+        this.uri = String.format("api/workflow/%s", this.id);
         
         String responce;// = "";
         String ret;// = "";
-        this.url_str = String.format("%s/%s?token=%s", this.url, this.page, this.SessionToken);
+        this.url_str = String.format("%s/%s?token=%s", this.url, this.uri, this.SessionToken);
         String json_str = String.format("{\"state\":%s}", status);
         
-        conn = new IITConnection();
-        conn.getConnection(url_str, method, "application/json");
+        iitConn = new IITConnection(url_str, method, "application/json");
         
-        try{
-            int i = conn.sendData(json_str);
-            if (i==0){
-                this.initialise(gson.fromJson(conn.getData(), IitWorkflow.class));
-                
+
+        int i = iitConn.sendData(json_str);
+        if (i==0){
+            this.initialise(gson.fromJson(iitConn.getData(), IitWorkflow.class));
+
 //                System.out.println(String.format("Workflow state: %s", this.getState()));
 //                System.out.println(String.format("Workflow package: %s", this.getPackageId()));
 //                System.out.println(String.format("Workflow message: %s", this.getMessage()));
-                //ret = Integer.toString(this.getId()); //"Authentication result: token passed";
-            }
-//            else
-                //res = null;
-//            System.out.println(String.format("Connection result: %s",Integer.toString(i)));
-        }catch(IOException ex){
-            Logger.getLogger("http_conn").log(Level.SEVERE, null, ex);
-//            res = ex.toString();
+            //ret = Integer.toString(this.getId()); //"Authentication result: token passed";
         }
+//            else
+            //res = null;
+//            System.out.println(String.format("Connection result: %s",Integer.toString(i)));
+
         
         return getWorkflowState();
     }
     
-    public String getRegDocList(){
+    public String getRegDocList() throws Exception{
         System.out.println("Getting client info...");
         
         //String url = "https://iitcloud-demo.iitrust.ru";
         
         this.method = "GET";
-        this.page = String.format("api/workflow/%s/certificate/file/", id);
+        this.uri = String.format("api/workflow/%s/certificate/file/", id);
         java.lang.reflect.Type docsArrType = new TypeToken<IitRegisrationDocument[]>() {}.getType();
         
         
         String responce;
-        String ret;
-        this.url_str = String.format("%s/%s?token=%s", this.url, this.page, this.SessionToken);
-        conn = new IITConnection();
-        conn.getConnection(this.url_str, method, "application/json");
+        String ret = "";
+        this.url_str = String.format("%s/%s?token=%s", this.url, this.uri, this.SessionToken);
+        iitConn = new IITConnection(this.url_str, method, "application/json");
         
-        try{
-            responce = conn.getData();
+        responce = iitConn.getData();
 //            System.out.println(String.format("request result: %s", res));
-            this.regDocs = gson.fromJson(responce, docsArrType);
+        this.regDocs = gson.fromJson(responce, docsArrType);
 //            System.out.println(String.format("Workflow package: %s", this.getPackageId()));
-            ret = responce;//this.consumerInstance.getState();
-        }catch(IOException ex){
-            Logger.getLogger("http_conn").log(Level.SEVERE, null, ex);
-            ret = ex.toString();
-        }
+        ret = responce;//this.consumerInstance.getState();
+
         return ret;
 
         
     }
  
-    public String dowloadDocument(fileSchema docType){
+    public Blob dowloadDocument(fileSchema docType) throws Exception{
         this.method = "GET";
         String schema_url = "";
         String fileName = "";
-        String ret;
+        Blob ret = null;
         int docId = 0;
         switch(docType){
             case signatureAgreement:
@@ -327,19 +313,14 @@ public class IitWorkflow extends IitWorkflowData{
                 break;
         }
         
-        this.page = String.format("api/workflow/%s/report/%s", this.id, schema_url);
-        this.url_str = String.format("%s/%s?token=%s", this.url, this.page, this.SessionToken);
+        this.uri = String.format("api/workflow/%s/report/%s", this.id, schema_url);
+        this.url_str = String.format("%s/%s?token=%s", this.url, this.uri, this.SessionToken);
         
-        conn = new IITConnection();
-        conn.getConnection(this.url_str, method, "multipart/form-data");
-        
-        try{
-            ret = conn.getFile(fileName);
-        }catch(IOException ex){
-            Logger.getLogger("http_conn").log(Level.SEVERE, null, ex);
-            ret = ex.toString();
-        }
-        return "File '" + ret + "' downloaded successful...";
+        iitConn = new IITConnection(this.url_str, method, "multipart/form-data");
+
+        ret = iitConn.getFile(fileName);
+
+        return ret;
         
         
     }

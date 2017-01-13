@@ -12,27 +12,30 @@ import com.google.gson.Gson;
  * @author p.chavdarov
  */
 public class IitEntity {
-    protected IITConnection conn;
-    //protected static Gson gson;
-    //protected String SessionToken;
-    
     protected static Gson gson;
-//    protected static final String url = "https://iitcloud-demo.iitrust.ru";
-    protected static final String url = "http://127.0.0.1:5000";
-    protected String method;
-    protected String page;
-    protected String url_str;
+    protected static final String url = "https://iitcloud-demo.iitrust.ru";
+
+    protected static IITConnectionInterface iitConn;
+    protected static String method;
+    protected static String uri;
+    protected static String url_str;
+    protected static String SessionToken;
+
+//    IitEntity() {
+//        if (this.gson == null)
+//            this.gson = new Gson();
+//    }
+//    IitEntity(String token) {
+//        if (this.gson == null)
+//            this.gson = new Gson();
+//        this.setSessionToken(token);
+//    }
     
-    IitEntity() {
-        if (this.gson == null)
-            this.gson = new Gson();
+    public static void Init(){
+        if (IitEntity.gson == null)
+            IitEntity.gson = new Gson();
     }
     
-    IitEntity(String token) {
-        if (this.gson == null)
-            this.gson = new Gson();
-        this.setSessionToken(token);
-    }
     /**
      * Get the value of gson
      *
@@ -50,10 +53,9 @@ public class IitEntity {
     public static void setGson(Gson gson) {
         IitEntity.gson = gson;
     }
-    
-    protected String SessionToken;
 
-    /**
+    
+        /**
      * Get the value of SessionToken
      *
      * @return the value of SessionToken
@@ -70,20 +72,5 @@ public class IitEntity {
     public void setSessionToken(String SessionToken) {
         this.SessionToken = SessionToken;
     }
-
-    static java.sql.Array array_wrapper(
-        String typeName,
-        Object elements
-    ) throws java.sql.SQLException {
-        oracle.jdbc.OracleDriver ora = new oracle.jdbc.OracleDriver();
-        java.sql.Connection conn = ora.defaultConnection();
-        oracle.jdbc.OracleConnection oraConn =
-            (oracle.jdbc.OracleConnection)conn;
-        java.sql.Array arr = 
-            oraConn.createARRAY(typeName.toUpperCase(), elements);
-        return arr;
-    }
-    
-    
     
 }
