@@ -54,9 +54,9 @@ public class IITConnection implements IITConnectionInterface{
         int res_code = 0;
         // пока заглушка
         //proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("10.95.17.46", 8080));
-//        proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("10.95.5.19", 8888));
-        proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("10.101.20.32", 3128));
-
+        proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("10.95.5.19", 8888));
+//        proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("10.101.20.32", 3128));
+        System.err.println("Connecting to " + pUrl + " ...");
         url = new URL(pUrl);
 
         if (res_code == 0){
@@ -98,17 +98,15 @@ public class IITConnection implements IITConnectionInterface{
         String inputLine;
         
         if (conn != null) {
-            System.err.println(1);
             InputStreamReader instrean = new InputStreamReader(conn.getInputStream(), "utf-8");
-            System.err.println(2);
             BufferedReader in = new BufferedReader(instrean);
-            System.err.println(3);
             while ((inputLine = in.readLine()) != null) {
-                System.err.println(result);
                 result += inputLine;
             }
             
         }
+        
+        conn.disconnect();
         return result;
     }
     

@@ -90,35 +90,12 @@ public class IitWorkflow extends IitWorkflowData{
             Logger.getLogger("http_conn").log(Level.SEVERE, null, ex);
             res = ex.toString();
         }
+        System.err.println("Wokflow created: " + res);
 
-        
         return res;
     }
     
-    public int createClient(
-//        String last_name,
-//        String first_name,
-//        String middle_name,
-//        String gender,
-//        String birthed,
-//        String phone,
-//
-//        String dco_type,
-//        String doc_series,
-//        String doc_num,
-//        String issue_code,
-//        String issuer,
-//        String issued,
-//
-//        String addr_type,
-//        String addr_region,
-//        String addr_city,
-//        String addr_street,
-//        String addr_house,
-//        String addr_apartment
-
-            String uData, String uDocData, String uAddrData
-    ) throws Exception{
+    public int createClient(String uData, String uDocData, String uAddrData) throws Exception{
         System.err.println("Creating client...");
         System.err.println("uData: " + uData);
         System.err.println("uDocData: " + uDocData);
@@ -133,7 +110,6 @@ public class IitWorkflow extends IitWorkflowData{
         String responce = "";
         IitConsumer consumer_data = new IitConsumer();
 
-        String[] userData = uData.split("~");
         String[] docsData = uDocData.split("\\|\\|");
         String[] addrsData = uAddrData.split("\\|\\|");
 
@@ -177,11 +153,12 @@ public class IitWorkflow extends IitWorkflowData{
         }
 
         String json_str = gson.toJson(consumer_data, IitConsumer.class);
-        System.out.println("Client json: "+json_str);
+        System.err.println("Client json: "+json_str);
         iitConn = new IITConnection(url_str, method, "application/json");
         int i = iitConn.sendData(json_str);
         if (i==0){
             System.err.println("Consumer send...");
+            
             responce = iitConn.getData();
             res = 0;
 
@@ -234,6 +211,7 @@ public class IitWorkflow extends IitWorkflowData{
         this.initialise(gson.fromJson(responce, IitWorkflow.class));
 //            System.out.println(String.format("Workflow package: %s", this.getPackageId()));
         ret = this.getState();
+        System.out.println("Workflow status: " + ret);
 
         return ret;
     }
@@ -271,7 +249,7 @@ public class IitWorkflow extends IitWorkflowData{
     }
     
     public String getRegDocList() throws Exception{
-        System.out.println("Getting client info...");
+        System.out.println("Getting registration docs info...");
         
         //String url = "https://iitcloud-demo.iitrust.ru";
         

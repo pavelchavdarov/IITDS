@@ -32,7 +32,6 @@ public class IitAuth extends IitEntity{
         
         String url_str = String.format("%s/%s", IitAuth.url, uri);
         String json_str = gson.toJson(auth, authRequest.class);
-        System.err.println(url_str);
         iitConn = new IITConnection(url_str, method, "application/json");
 
         iitConn.sendData(json_str);
@@ -40,8 +39,6 @@ public class IitAuth extends IitEntity{
 
         SessionToken = token.getToken();//conn.getData();
         System.err.println("Authentication result: token " + SessionToken);
-        //res =  setPar(res,"token", SessionToken);//"Authentication result: token passed";
-        //res = setPar(res,"error", "");
     }
     
     public static String makeAuth(String login, String password)

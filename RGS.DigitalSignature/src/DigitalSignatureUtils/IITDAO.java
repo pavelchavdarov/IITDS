@@ -76,49 +76,22 @@ public class IITDAO
 
         String res="";
         String url_str = String.format("%s/%s?token=%s", url, page,SessionToken);
-        System.err.println(url_str);
-
-            conn = new IITConnection(url_str, method, "application/json");
-            System.err.println("getting packageList...");
-            String answer = conn.getData();
-            System.err.println("response: "+ answer);
-            packageList = gson.fromJson(answer, itemsArrType);
-            System.err.println(packageList.length);
-            for (IitDocumentPackage p : packageList){
-                res = res + "||" + "^~pkg~" + String.valueOf(p.getId()) + "~^" + "||";
-            }
+        
+        conn = new IITConnection(url_str, method, "application/json");
+        String answer = conn.getData();
+        System.err.println("response: "+ answer);
+        packageList = gson.fromJson(answer, itemsArrType);
+        for (IitDocumentPackage p : packageList){
+            res = res + "||" + "^~pkg~" + String.valueOf(p.getId()) + "~^" + "||";
+        }
+        
         return res;
     }
     
 //////////////////////////////////////    
     public static void main(String[] args) throws Exception{
-        /*
-        IITDAO dao = new IITDAO();
-        //dao.auth = new IitAuth();
-        String token = dao.auth.makeAuth("deprgs-demo", "321qwe654");
-        dao.SessionToken = token;
-        dao.getDocPackagesList();
-        dao.workflow = new IitWorkflow(token);
-        dao.workflow.createWorkflow(dao.packageList[0].getId());
         
-        String str1 = "Алибабаев"+"~"+"Василий"+"~"+"Алибабаевич"+"~"+"1948-05-12"+"~"+"79202392016"+"~"+"M"+"~"+"";
-        String str2 = "internal-passport"+"~"+"8005"+"~"+"810001"+"~"+"000-001"+"~"+"ЙЦУ РУВД гор. КЕН респ. ФЫВ"+"~"+"2015-04-14"+"#";
-        String str3 = "permanent"+"~"+"02"+"~"+"г. КЕН"+"~"+"ЯЧСМИ"+"~"+"21"+"~"+"18"+"#";
-                
-        dao.workflow.createClient(str1, str2, str3);
-        
-        String state = dao.workflow.getWorkflowState();
-        while(!state.equals("wait-confirmation-documents-and-sms") && !state.equals("rejected")){
-            System.out.println(state);
-            sleep(5000); // "Пять минут, Турецкий"
-            state = dao.workflow.getWorkflowState();
-        }
-        
-        System.out.println("RegDocList: " + dao.workflow.getRegDocList());
-        
-        System.out.println(dao.workflow.dowloadDocument(fileSchema.signatureAgreement));
-        */
-        String uData = "^~last_name~ФАХРЕТДИНОВ~^^~first_name~АЙРАТ~^^~middle_name~РИНАТОВИЧ~^^~birthed~1985-06-22~^^~phone~79191409459~^^~gender~M~^";
+        String uData = "^~last_name~ФАХРЕТДИНОВ~^^~first_name~АЙРАТ~^^~middle_name~РИНАТОВИЧ~^^~birthed~1985-06-22~^^~phone~79177978047~^^~gender~M~^";
         String uDocData = "^~type~internal-passport~^^~series~8005~^^~number~827104~^^~issue_code~022-001~^^~issue~ДЕМСКИМ РОВД ГОР. УФЫ РЕСП. БАШКОРТОСТАН~^^~issued~2005-07-13~^";
         String uAddrData = "^~type~permanent~^^~region~02~^^~city~Уфа~^^~street~Ухтомского~^^~house~22~^^~apartment~90~^";
         
@@ -147,7 +120,6 @@ public class IITDAO
 
             String state = dao.workflow.getWorkflowState();
             while(!state.equals("wait-confirmation-documents-and-sms") && !state.equals("rejected")){
-                System.out.println(state);
                 sleep(5000); // "Пять минут, Турецкий"
                 state = dao.workflow.getWorkflowState();
             }
