@@ -160,6 +160,7 @@ public class IITDAO
             }
             
             if (state.equals("wait-confirmation-documents-and-sms")){
+                // !! сделать отдельную функцю получения списка регистрационных документов
                 System.out.println("RegDocList: " + DAO.workflow.getRegDocList());
                 result = DAO.workflow.dowloadDocument(fileSchema.signatureAgreement);
             }else if(state.equals("wait-order-documents")){
@@ -171,7 +172,7 @@ public class IITDAO
            System.err.println(e.getMessage());
            System.err.println(e);
             
-            resStr = String4CFT.setPar(resStr,"error", e.toString());
+            resStr = String4CFT.setPar(resStr,"error", e.getMessage());
             if (resStr.length()>=1000){
                 resStr = resStr.substring(0, 1000);
             }else
@@ -199,5 +200,11 @@ public class IITDAO
             // записать resStr в result!!!
         }
         return result;
+    }
+    
+    public static String SendRegDocs(Blob passport, Blob agreement){
+       //if (DAO == null) DAO = new IITDAO();
+       
+       return DAO.workflow.uploadDocument(passport, agreement);
     }
 }

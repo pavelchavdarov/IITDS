@@ -9,6 +9,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,7 +44,6 @@ public class IITConnection implements IITConnectionInterface{
 
     private HttpURLConnection conn;
     private Proxy proxy;
-    private String connMethod;
 
     public IITConnection(String pUrl, String pMethod, String pContentType) throws Exception {
         this.getConnection(pUrl, pMethod, pContentType);
@@ -53,7 +54,6 @@ public class IITConnection implements IITConnectionInterface{
     @Override
     public HttpURLConnection getConnection(String pUrl, String pMethod, String pContentType) throws Exception{
         URL url = null;
-        int res_code = 0;
         // пока заглушка
         //proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("10.95.17.46", 8080));
 //        proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("10.95.5.19", 8888));
@@ -61,37 +61,29 @@ public class IITConnection implements IITConnectionInterface{
         System.err.println("Connecting to " + pUrl + " ...");
         url = new URL(pUrl);
 
-        if (res_code == 0){
-            conn = (HttpURLConnection) url.openConnection(proxy);
-            conn.setDoInput(true);
-            conn.setDoOutput(true);
-            conn.setUseCaches(false);
-            conn.setConnectTimeout(60000);
-            conn.setRequestMethod(pMethod);
+        conn = (HttpURLConnection) url.openConnection(proxy);
+        conn.setDoInput(true);
+        conn.setDoOutput(true);
+        conn.setUseCaches(false);
+        conn.setConnectTimeout(60000);
+        conn.setRequestMethod(pMethod);
+        if(!pMethod.equals("GET")){
             conn.setRequestProperty("Content-Type", pContentType/*"application/json"*/);
-            conn.setRequestProperty("charset", "utf-8");
+            if(pContentType.equals("application/json"))
+                conn.setRequestProperty("charset", "utf-8");
         }
-        else
-            res_code = 1;
-
-        if (res_code == 0){
-            System.err.println("Connection done...");
-            return conn;
-        }
-        else
-            System.err.println("Connection error!!!");
-        return null;
+        System.err.println("Connection prepared...");
+        return conn;
     }
 
     @Override
-    public int sendData(String pData) throws Exception{
+    public void sendData(String pData) throws Exception{
 
-        OutputStreamWriter outstrean = new OutputStreamWriter (conn.getOutputStream (), "UTF-8");
-        BufferedWriter wr = new BufferedWriter (outstrean);
+        OutputStreamWriter outstream = new OutputStreamWriter (conn.getOutputStream (), "UTF-8");
+        BufferedWriter wr = new BufferedWriter (outstream);
         wr.write(pData);
         wr.flush();
 
-        return 0;
     } 
   
     @Override
@@ -131,7 +123,27 @@ public class IITConnection implements IITConnectionInterface{
         return result;
     }
     
-    public Blob getFile(String fileName) throws Exception{
+    public void sendFile(Blob pBlob) throws Exception{
+        final String ContentDisposition = "Content-Disposition: form-data; name=\"path\"; filename=\"\"";
+        final String ContentType = "application/pdf";
+        final String CRLF = "\r\n"; 
+        byte[] buf = new byte[1];
+        
+        OutputStream outStream = conn.getOutputStream ();
+        // пишем раздел
+        outStream.write(ContentDisposition.getBytes());
+        outStream.write(CRLF.getBytes());
+        outStream.write(ContentType.getBytes());
+        outStream.write(CRLF.getBytes());
+        
+        InputStream inStream = pBlob.getBinaryStream();
+        // пишем содержимое файла
+        while(inStream.read(buf) != -1){
+            outStream.write(buf);
+        }
+    }
+    
+    public Blob getFile() throws Exception{
         
         oracle.jdbc.OracleConnection oraConn =
                 (oracle.jdbc.OracleConnection)new OracleDriver().defaultConnection();
@@ -146,7 +158,7 @@ public class IITConnection implements IITConnectionInterface{
         OutputStream outStream = retBlob.setBinaryStream(1);
 
         String resStr = "";
-//        resStr = String4CFT.setPar(resStr,"error", "");
+
         // дополним до 1000 символов пробелами справа
         resStr = String.format("%-1000s", resStr);
         byte[] buf = resStr.getBytes();
@@ -160,6 +172,8 @@ public class IITConnection implements IITConnectionInterface{
         outStream.flush();
         System.out.println(retBlob);
         return retBlob;
+
+        
 //        outStream.write(inStream.read(b));
 
 //        ByteBuffer bbuf = ByteBuffer.allocate(1);

@@ -15,7 +15,9 @@ import java.sql.Blob;
  */
 interface IITConnectionInterface{
   public HttpURLConnection getConnection(String pUrl, String pMethod, String pContentType) throws Exception;
-  public int sendData(String pData) throws Exception;
+  public void sendData(String pData) throws Exception;
   public String getData() throws Exception;
-  public Blob getFile(String fileName) throws Exception;
+  public void sendFile(Blob pBlob) throws Exception;
+  public Blob getFile() throws Exception;
+  
 }

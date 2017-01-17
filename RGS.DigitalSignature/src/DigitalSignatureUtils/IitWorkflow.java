@@ -73,18 +73,11 @@ public class IitWorkflow extends IitWorkflowData{
         
 //        try{
             iitConn = new IITConnection(this.url_str, this.method, "application/json");
-            int i = iitConn.sendData(json_str);
-            if (i==0){
-                this.initialise(gson.fromJson(iitConn.getData(), IitWorkflow.class));
-                this.setPackageId(docPackageId);
-                
-//                System.out.println(String.format("Workflow state: %s", this.getState()));
-//                System.out.println(String.format("Workflow package: %s", this.getPackageId()));
-//                System.out.println(String.format("Workflow message: %s", this.getMessage()));
-                res = Integer.toString(this.getId()); //"Authentication result: token passed";
-            }
-            else
-                res = null;
+            iitConn.sendData(json_str);
+            this.initialise(gson.fromJson(iitConn.getData(), IitWorkflow.class));
+            this.setPackageId(docPackageId);
+            res = String.valueOf(this.getId()); //"Authentication result: token passed";
+
 //            System.out.println(String.format("Connection result: %s",Integer.toString(i)));
 //        }catch(Exception ex){
 //            Logger.getLogger("http_conn").log(Level.SEVERE, null, ex);
@@ -155,19 +148,13 @@ public class IitWorkflow extends IitWorkflowData{
         String json_str = gson.toJson(consumer_data, IitConsumer.class);
         System.err.println("Client json: "+json_str);
         iitConn = new IITConnection(url_str, method, "application/json");
-        int i = iitConn.sendData(json_str);
-        if (i==0){
-            System.err.println("Consumer send...");
-            
-            response = iitConn.getData();
-            System.err.println("Consumer response: " + response);
-            res = 0;
+        iitConn.sendData(json_str);
+        System.err.println("Consumer send...");
 
-        }
-        else
-            res = 1;
-//            System.out.println(String.format("Connection result: %s",Integer.toString(i)));
-        
+        response = iitConn.getData();
+        System.err.println("Consumer response: " + response);
+        res = 0;
+
         this.consumerInstance = gson.fromJson(response, IitConsumer.class);//consumer_data;
         return res;
     }
@@ -232,20 +219,9 @@ public class IitWorkflow extends IitWorkflowData{
         iitConn = new IITConnection(url_str, method, "application/json");
         
 
-        int i = iitConn.sendData(json_str);
-        if (i==0){
-            this.initialise(gson.fromJson(iitConn.getData(), IitWorkflow.class));
+        iitConn.sendData(json_str);
+        this.initialise(gson.fromJson(iitConn.getData(), IitWorkflow.class));
 
-//                System.out.println(String.format("Workflow state: %s", this.getState()));
-//                System.out.println(String.format("Workflow package: %s", this.getPackageId()));
-//                System.out.println(String.format("Workflow message: %s", this.getMessage()));
-            //ret = Integer.toString(this.getId()); //"Authentication result: token passed";
-        }
-//            else
-            //res = null;
-//            System.out.println(String.format("Connection result: %s",Integer.toString(i)));
-
-        
         return getWorkflowState();
     }
     
@@ -288,41 +264,54 @@ public class IitWorkflow extends IitWorkflowData{
     public Blob dowloadDocument(fileSchema docType) throws Exception{
         this.method = "GET";
         String schema_url = "";
-        String fileName = "";
         Blob ret = null;
-        int docId = 0;
         switch(docType){
             case signatureAgreement:
                 schema_url = "signature-agreement";
-                for (IitRegistrationDocument doc : this.regDocs){
-                    if (schema_url.equals(doc.getDocument_type())){
-                        docId = doc.getId();
-                        break;
-                    }
-                }
-                fileName = "signature_agreement_"+ String.valueOf(docId)+".pdf";
                 break;
             case certificateReportOps:
                 schema_url = "certificate-report-ops";
-                fileName = "certificate-report-ops.pdf";
                 break;
             case certificateReportOpsHsm:
                 schema_url = "certificate-report-ops-hsm";
-                fileName = "certificate-report-ops-hsm.pdf";
                 break;
         }
         
         this.uri = String.format("api/workflow/%s/report/%s", this.id, schema_url);
         this.url_str = String.format("%s/%s?token=%s", this.url, this.uri, this.SessionToken);
         
-        iitConn = new IITConnection(this.url_str, method, "multipart/form-data");
+        iitConn = new IITConnection(this.url_str, method, "");
 
-        ret = iitConn.getFile(fileName);
+        ret = iitConn.getFile();
 
         return ret;
-        
-        
     }
 
+    public String uploadDocument(Blob passport, Blob agreement) {//throws Exception{
+        this.method = "PUT";
+        String ret = "";
+        try{
+            for(int i = 0; i < regDocs.length; i++){
+                if(regDocs[i].getDocument_type().equals("internal-passport")){
+                    this.uri = String.format("api/workflow/%s/certificate/file/%s", this.id, regDocs[i].getId());
+                    this.url_str = String.format("%s/%s?token=%s", this.url, this.uri, this.SessionToken);
+                    iitConn = new IITConnection(this.url_str, method, "multipart/form-data");
+                    iitConn.sendFile(passport);
+                    regDocs[i] = gson.fromJson(iitConn.getData(), IitRegistrationDocument.class);
+                    ret = String4CFT.setPar(ret, "passport", "OK");
+                }else if(regDocs[i].getDocument_type().equals("signature-agreement")){
+                    this.uri = String.format("api/workflow/%s/certificate/file/%s", this.id, regDocs[i].getId());
+                    this.url_str = String.format("%s/%s?token=%s", this.url, this.uri, this.SessionToken);
+                    iitConn = new IITConnection(this.url_str, method, "multipart/form-data");
+                    iitConn.sendFile(agreement);
+                    regDocs[i] = gson.fromJson(iitConn.getData(), IitRegistrationDocument.class);
+                    ret = String4CFT.setPar(ret, "agreement", "OK");
+                }
+            }
+        }catch(Exception e){
+            ret = String4CFT.setPar(ret, "error", e.getMessage());
+        }
+        return ret;
+    } 
     
 }
