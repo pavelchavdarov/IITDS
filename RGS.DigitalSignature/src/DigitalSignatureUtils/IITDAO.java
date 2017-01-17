@@ -15,6 +15,7 @@ import static java.lang.Thread.sleep;
 import java.sql.Blob;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import oracle.jdbc.OracleDriver;
@@ -32,8 +33,8 @@ public class IITDAO
     private IITConnectionInterface conn;
     private Gson gson;
     
-    private String SessionToken;
-    private IitDocumentPackage[] packageList;
+    private static String SessionToken;
+    //private IitDocumentPackage[] packageList;
     //private IitDocumentPackage curreantPackage;
     
     private IitAuth auth;
@@ -43,50 +44,55 @@ public class IITDAO
     
     private static IITDAO DAO;
 
-    /**
-     * Get the value of DAO
-     *
-     * @return the value of DAO
-     */
-    public static IITDAO getDAO() {
-        return DAO;
-    }
-
-    /**
-     * Set the value of DAO
-     *
-     * @param DAO new value of DAO
-     */
-    public static void setDAO(IITDAO DAO) {
-        IITDAO.DAO = DAO;
-    }
+//    /**
+//     * Get the value of DAO
+//     *
+//     * @return the value of DAO
+//     */
+//    public static IITDAO getDAO() {
+//        return DAO;
+//    }
+//
+//    /**
+//     * Set the value of DAO
+//     *
+//     * @param DAO new value of DAO
+//     */
+//    public static void setDAO(IITDAO DAO) {
+//        IITDAO.DAO = DAO;
+//    }
 
     
     public IITDAO(){
         this.gson = new Gson();
         this.workflow = new IitWorkflow();
+        SessionToken = "";
+        DAO = this;
     }
 
 //////////////////////////////////////
-    public String getDocPackagesList() throws Exception {
-        String url = "http://iitcloud-demo.iitrust.ru";
-        String method = "GET";
-        String page = "api/agent/document/package";
-        java.lang.reflect.Type itemsArrType = new TypeToken<IitDocumentPackage[]>() {}.getType();
-
-        String res="";
-        String url_str = String.format("%s/%s?token=%s", url, page,SessionToken);
-        
-        conn = new IITConnection(url_str, method, "application/json");
-        String answer = conn.getData();
-        System.err.println("response: "+ answer);
-        packageList = gson.fromJson(answer, itemsArrType);
-        for (IitDocumentPackage p : packageList){
-            res = res + "||" + "^~pkg~" + String.valueOf(p.getId()) + "~^" + "||";
-        }
-        
-        return res;
-    }
+//    public String getDocPackagesList() throws Exception {
+//        String url = "http://iitcloud-demo.iitrust.ru";
+//        String method = "GET";
+//        String page = "api/agent/document/package";
+//        java.lang.reflect.Type itemsArrType = new TypeToken<IitDocumentPackage[]>() {}.getType();
+//
+//        String res="";
+//        String url_str = String.format("%s/%s?token=%s", url, page,SessionToken);
+//        
+//        conn = new IITConnection(url_str, method, "application/json");
+//        String answer = conn.getData();
+//        System.err.println("response: "+ answer);
+////        packageList = gson.fromJson(answer, itemsArrType);
+//        IitDocumentPackageList packageList = gson.fromJson(answer, IitDocumentPackageList.class);
+//        for (IitDocumentPackage p : packageList.docPackageList){
+//            res = String4CFT.setPar(res, "id", String.valueOf(p.getId()));
+//            res = String4CFT.setPar(res, "title", String.valueOf(p.getTitle()));
+//            res = res + "||";
+//        }
+//        
+//        return res;
+//    }
     
 //////////////////////////////////////    
     public static void main(String[] args) throws Exception{
@@ -95,43 +101,77 @@ public class IITDAO
         String uDocData = "^~type~internal-passport~^^~series~8005~^^~number~827104~^^~issue_code~022-001~^^~issue~ДЕМСКИМ РОВД ГОР. УФЫ РЕСП. БАШКОРТОСТАН~^^~issued~2005-07-13~^";
         String uAddrData = "^~type~permanent~^^~region~02~^^~city~Уфа~^^~street~Ухтомского~^^~house~22~^^~apartment~90~^";
         
-        Blob bl = RegisterClient(uData, uDocData, uAddrData);
+        String token = makeAuth("deprgs-demo", "321qwe654");
+        HashMap<String, String> map = String4CFT.getMap(token);
+        System.out.println(token);
+        String packageList = getDocPackageList(map.get("token"));
+        System.out.println("packageList: " + packageList);
+        Blob bl = RegisterClient(uData, uDocData, uAddrData, 35);
         
         String testStr = bl.toString();
     }
 
+    public static String makeAuth(String login, String password) {
+        if (DAO == null) DAO = new IITDAO();
+        
+        String res = IitAuth.makeAuth(login, password);
+        DAO.SessionToken = IitAuth.SessionToken;
+        return res;
+        
+    }
+    
+    public static String getDocPackageList(String token) {//throws Exception {
+        if (DAO == null) DAO = new IITDAO();
+        
+        if(!DAO.SessionToken.equals(token)){
+            //String ret ="";
+            //ret = String4CFT.setPar(ret, "error", "Токен устарел. Необходимо запустить процедуру аутентификации.");
+            DAO.SessionToken = token;
+        }
+        return IitDocumentPackageList.getDocPackagesList();
+    }
+    
     public static Blob RegisterClient(  String uData, String uDocData, 
-                                        String uAddrData){
-         IITDAO dao = new IITDAO();
+                                        String uAddrData, int packageId ){
+        if (DAO == null) DAO = new IITDAO();
+
         //dao.auth = new IitAuth();
         Blob result = null;
         String resStr="";
         try{
             
-            dao.auth.makeAuthEx("deprgs-demo", "321qwe654");
+            //DAO.auth.makeAuthEx("deprgs-demo", "321qwe654");
             // только для getDocPackagesList()
-            dao.SessionToken = dao.auth.SessionToken;
-            System.err.println("package list: " + dao.getDocPackagesList());
+            //DAO.SessionToken = DAO.auth.SessionToken;
+            //System.err.println("package list: " + DAO.getDocPackagesList());
         //        DAO.workflow = new IitWorkflow(DAO.auth.SessionToken);
             //dao.workflow = new IitWorkflow();
-            dao.workflow.createWorkflow(dao.packageList[0].getId());
+            DAO.workflow.createWorkflow(packageId);
 
-            dao.workflow.createClient(uData, uDocData, uAddrData);
+            DAO.workflow.createClient(uData, uDocData, uAddrData);
 
-            String state = dao.workflow.getWorkflowState();
-            while(!state.equals("wait-confirmation-documents-and-sms") && !state.equals("rejected")){
+            String state = DAO.workflow.getWorkflowState();
+            while(  !state.equals("wait-confirmation-documents-and-sms")
+                    && !state.equals("rejected")
+                    && !state.equals("wait-order-documents")
+                 ){
                 sleep(5000); // "Пять минут, Турецкий"
-                state = dao.workflow.getWorkflowState();
+                state = DAO.workflow.getWorkflowState();
             }
-
-            System.out.println("RegDocList: " + dao.workflow.getRegDocList());
-            result = dao.workflow.dowloadDocument(fileSchema.signatureAgreement);
+            
+            if (state.equals("wait-confirmation-documents-and-sms")){
+                System.out.println("RegDocList: " + DAO.workflow.getRegDocList());
+                result = DAO.workflow.dowloadDocument(fileSchema.signatureAgreement);
+            }else if(state.equals("wait-order-documents")){
+               Exception ex = new Exception("Тут будет загрузка депозитного договора для подписи");
+               throw ex;
+            }
             
         }catch(Exception e){
            System.err.println(e.getMessage());
            System.err.println(e);
             
-            resStr = String4CFT.setPar(resStr,"error", e.getMessage());
+            resStr = String4CFT.setPar(resStr,"error", e.toString());
             if (resStr.length()>=1000){
                 resStr = resStr.substring(0, 1000);
             }else
