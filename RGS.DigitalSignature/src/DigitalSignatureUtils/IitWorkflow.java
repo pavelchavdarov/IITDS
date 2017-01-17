@@ -298,14 +298,14 @@ public class IitWorkflow extends IitWorkflowData{
                     iitConn = new IITConnection(this.url_str, method, "multipart/form-data");
                     iitConn.sendFile(passport);
                     regDocs[i] = gson.fromJson(iitConn.getData(), IitRegistrationDocument.class);
-                    ret = String4CFT.setPar(ret, "passport", "OK");
+                    ret = String4CFT.setPar(ret, "passport", regDocs[i].getState());
                 }else if(regDocs[i].getDocument_type().equals("signature-agreement")){
                     this.uri = String.format("api/workflow/%s/certificate/file/%s", this.id, regDocs[i].getId());
                     this.url_str = String.format("%s/%s?token=%s", this.url, this.uri, this.SessionToken);
                     iitConn = new IITConnection(this.url_str, method, "multipart/form-data");
                     iitConn.sendFile(agreement);
                     regDocs[i] = gson.fromJson(iitConn.getData(), IitRegistrationDocument.class);
-                    ret = String4CFT.setPar(ret, "agreement", "OK");
+                    ret = String4CFT.setPar(ret, "agreement", regDocs[i].getState());
                 }
             }
         }catch(Exception e){
