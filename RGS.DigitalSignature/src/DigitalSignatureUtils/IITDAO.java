@@ -139,13 +139,6 @@ public class IITDAO
         Blob result = null;
         String resStr="";
         try{
-            
-            //DAO.auth.makeAuthEx("deprgs-demo", "321qwe654");
-            // только для getDocPackagesList()
-            //DAO.SessionToken = DAO.auth.SessionToken;
-            //System.err.println("package list: " + DAO.getDocPackagesList());
-        //        DAO.workflow = new IitWorkflow(DAO.auth.SessionToken);
-            //dao.workflow = new IitWorkflow();
             DAO.workflow.createWorkflow(packageId);
 
             DAO.workflow.createClient(uData, uDocData, uAddrData);
@@ -164,8 +157,23 @@ public class IITDAO
                 System.out.println("RegDocList: " + DAO.workflow.getRegDocList());
                 result = DAO.workflow.dowloadDocument(fileSchema.signatureAgreement);
             }else if(state.equals("wait-order-documents")){
-               Exception ex = new Exception("Тут будет загрузка депозитного договора для подписи");
-               throw ex;
+                resStr = String4CFT.setPar(resStr,"state: ", state);
+                resStr = String.format("%-1000s", resStr);
+
+                try {
+                    oracle.jdbc.OracleConnection oraConn =
+    //                (oracle.jdbc.OracleConnection)DriverManager.getConnection("jdbc:oracle:thin:@test03.msk.russb.org:1521:rbotest2","ibs","12ibs");
+                     (oracle.jdbc.OracleConnection)new OracleDriver().defaultConnection();
+
+                    result = oracle.sql.BLOB.createTemporary(oraConn, true, oracle.sql.BLOB.DURATION_SESSION);
+                    OutputStream outStream = result.setBinaryStream(1);
+                    byte[] buf = resStr.getBytes();
+                    outStream.write(buf);
+                    outStream.flush();
+
+                } catch (Exception ex) {
+                    System.err.println(ex.getMessage());
+                }
             }
             
         }catch(Exception e){
