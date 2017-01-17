@@ -26,7 +26,7 @@ public class IitWorkflowData extends IitEntity{
     protected int company; 
     protected int agent;
     protected IitConsumer consumerInstance;
-    protected IitRegisrationDocument[] regDocs;
+    protected IitRegistrationDocument[] regDocs;
 
     IitWorkflowData(){
         Init();
@@ -147,7 +147,7 @@ public class IitWorkflowData extends IitEntity{
  * Класс отражает документ, который необходимо заполнить для регистраци 
  * (генерации сертификата ЭП) клиента.
  */
-class IitRegisrationDocument {
+class IitRegistrationDocument {
     
     private int id;
 

@@ -8,6 +8,8 @@ package DigitalSignatureUtils;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 /**
  *
@@ -35,7 +37,10 @@ public class IitAuth extends IitEntity{
         iitConn = new IITConnection(url_str, method, "application/json");
 
         iitConn.sendData(json_str);
-        token = gson.fromJson(iitConn.getData(), IitToken.class);
+        String result = iitConn.getData();
+        
+    
+        token = gson.fromJson(result, IitToken.class);
 
         SessionToken = token.getToken();//conn.getData();
         System.err.println("Authentication result: token " + SessionToken);
@@ -64,7 +69,7 @@ public class IitAuth extends IitEntity{
             SessionToken = token.getToken();//conn.getData();
             System.out.println("Authentication result: token passed");
             res =  String4CFT.setPar(res,"token", SessionToken);//"Authentication result: token passed";
-            res = String4CFT.setPar(res,"error", "");
+//            res = String4CFT.setPar(res,"error", "");
         }catch(Exception ex){
             System.err.println(ex.getMessage());
             SessionToken = null;

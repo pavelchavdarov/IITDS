@@ -5,6 +5,8 @@
  */
 package DigitalSignatureUtils;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileOutputStream;
@@ -54,8 +56,8 @@ public class IITConnection implements IITConnectionInterface{
         int res_code = 0;
         // пока заглушка
         //proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("10.95.17.46", 8080));
-        proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("10.95.5.19", 8888));
-//        proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("10.101.20.32", 3128));
+//        proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("10.95.5.19", 8888));
+        proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("10.101.20.32", 3128));
         System.err.println("Connecting to " + pUrl + " ...");
         url = new URL(pUrl);
 
@@ -95,13 +97,32 @@ public class IITConnection implements IITConnectionInterface{
     @Override
     public String getData() throws Exception{
         String result="";
-        String inputLine;
-        
+        //String inputLine;
+        char[] cbuf = new char[1];
         if (conn != null) {
-            InputStreamReader instrean = new InputStreamReader(conn.getInputStream(), "utf-8");
+            InputStreamReader instrean = null;
+            try {
+                instrean = new InputStreamReader(conn.getInputStream(), "utf-8");
+            } catch (IOException e) {
+                instrean = new InputStreamReader(conn.getErrorStream(), "utf-8");
+                BufferedReader in = new BufferedReader(instrean);
+                while (in.read(cbuf) != -1) {
+                    result += String.valueOf(cbuf);
+                }
+                JsonParser jParser = new JsonParser();
+                JsonObject jObj = (JsonObject)jParser.parse(result);
+                if (jObj != null && jObj.has("detail")){
+                    Exception ex = new Exception(jObj.get("detail").getAsString());
+                    throw ex;
+                }
+                throw e;
+            }
             BufferedReader in = new BufferedReader(instrean);
-            while ((inputLine = in.readLine()) != null) {
-                result += inputLine;
+//            while ((inputLine = in.readLine()) != null) {
+//                result += inputLine;
+//            }
+            while (in.read(cbuf) != -1) {
+                result += String.valueOf(cbuf);
             }
             
         }
@@ -125,8 +146,8 @@ public class IITConnection implements IITConnectionInterface{
         OutputStream outStream = retBlob.setBinaryStream(1);
 
         String resStr = "";
-        resStr = String4CFT.setPar(resStr,"error", "");
-        // дополним дло 1000 символов пробелами справа
+//        resStr = String4CFT.setPar(resStr,"error", "");
+        // дополним до 1000 символов пробелами справа
         resStr = String.format("%-1000s", resStr);
         byte[] buf = resStr.getBytes();
         outStream.write(buf);

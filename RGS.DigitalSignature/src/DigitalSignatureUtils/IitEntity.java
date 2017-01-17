@@ -6,6 +6,8 @@
 package DigitalSignatureUtils;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 /**
  *
@@ -72,5 +74,14 @@ public class IitEntity {
     public void setSessionToken(String SessionToken) {
         this.SessionToken = SessionToken;
     }
+    
+//    public static void checkErrorInResponse(String responce) throws Exception{
+//        JsonParser jParser = new JsonParser();
+//        JsonObject jObj = (JsonObject)jParser.parse(responce);
+//        if (jObj != null && jObj.has("detail")){
+//            Exception ex = new Exception(jObj.get("detail").getAsString());
+//            throw ex;
+//        }
+//    }
     
 }

@@ -60,7 +60,7 @@ public class IitWorkflow extends IitWorkflowData{
      
     };
     
-    public String createWorkflow(int docPackageId){
+    public String createWorkflow(int docPackageId) throws Exception {
         System.err.println("Creating workflow...");
         
         this.method = "POST";
@@ -71,7 +71,7 @@ public class IitWorkflow extends IitWorkflowData{
         String json_str = String.format("{\"package\":%s}", docPackageId);
         
         
-        try{
+//        try{
             iitConn = new IITConnection(this.url_str, this.method, "application/json");
             int i = iitConn.sendData(json_str);
             if (i==0){
@@ -86,10 +86,10 @@ public class IitWorkflow extends IitWorkflowData{
             else
                 res = null;
 //            System.out.println(String.format("Connection result: %s",Integer.toString(i)));
-        }catch(Exception ex){
-            Logger.getLogger("http_conn").log(Level.SEVERE, null, ex);
-            res = ex.toString();
-        }
+//        }catch(Exception ex){
+//            Logger.getLogger("http_conn").log(Level.SEVERE, null, ex);
+//            res = ex.toString();
+//        }
         System.err.println("Wokflow created: " + res);
 
         return res;
@@ -107,7 +107,7 @@ public class IitWorkflow extends IitWorkflowData{
         
         int res;// = 0;
         String url_str = String.format("%s/%s?token=%s", this.url, this.uri, this.SessionToken);
-        String responce = "";
+        String response = "";
         IitConsumer consumer_data = new IitConsumer();
 
         String[] docsData = uDocData.split("\\|\\|");
@@ -159,7 +159,8 @@ public class IitWorkflow extends IitWorkflowData{
         if (i==0){
             System.err.println("Consumer send...");
             
-            responce = iitConn.getData();
+            response = iitConn.getData();
+            System.err.println("Consumer response: " + response);
             res = 0;
 
         }
@@ -167,7 +168,7 @@ public class IitWorkflow extends IitWorkflowData{
             res = 1;
 //            System.out.println(String.format("Connection result: %s",Integer.toString(i)));
         
-        this.consumerInstance = consumer_data;
+        this.consumerInstance = gson.fromJson(response, IitConsumer.class);//consumer_data;
         return res;
     }
  
@@ -194,7 +195,7 @@ public class IitWorkflow extends IitWorkflowData{
     }
     
     public String getWorkflowState() throws Exception{
-        System.out.println("Getting workflow status...");
+        System.out.println("Getting workflow state...");
         
         //String url = "https://iitcloud-demo.iitrust.ru";
         this.method = "GET";
@@ -255,7 +256,7 @@ public class IitWorkflow extends IitWorkflowData{
         
         this.method = "GET";
         this.uri = String.format("api/workflow/%s/certificate/file/", id);
-        java.lang.reflect.Type docsArrType = new TypeToken<IitRegisrationDocument[]>() {}.getType();
+        java.lang.reflect.Type docsArrType = new TypeToken<IitRegistrationDocument[]>() {}.getType();
         
         
         String responce;
@@ -267,7 +268,17 @@ public class IitWorkflow extends IitWorkflowData{
 //            System.out.println(String.format("request result: %s", res));
         this.regDocs = gson.fromJson(responce, docsArrType);
 //            System.out.println(String.format("Workflow package: %s", this.getPackageId()));
-        ret = responce;//this.consumerInstance.getState();
+        
+        for(IitRegistrationDocument regDoc: this.regDocs){
+            ret = String4CFT.setPar(ret, "accept", regDoc.getAccept());
+            ret = String4CFT.setPar(ret, "document_type", regDoc.getDocument_type());
+            ret = String4CFT.setPar(ret, "path", regDoc.getPath());
+            ret = String4CFT.setPar(ret, "state", regDoc.getState());
+            ret = String4CFT.setPar(ret, "title", regDoc.getTitle());
+            ret = String4CFT.setPar(ret, "id", String.valueOf(regDoc.getId()));
+            ret += "||";
+        }
+        //ret = responce;//this.consumerInstance.getState();
 
         return ret;
 
@@ -283,7 +294,7 @@ public class IitWorkflow extends IitWorkflowData{
         switch(docType){
             case signatureAgreement:
                 schema_url = "signature-agreement";
-                for (IitRegisrationDocument doc : this.regDocs){
+                for (IitRegistrationDocument doc : this.regDocs){
                     if (schema_url.equals(doc.getDocument_type())){
                         docId = doc.getId();
                         break;
@@ -313,4 +324,5 @@ public class IitWorkflow extends IitWorkflowData{
         
     }
 
+    
 }
