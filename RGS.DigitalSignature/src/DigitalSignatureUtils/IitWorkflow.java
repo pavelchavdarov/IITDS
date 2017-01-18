@@ -39,7 +39,7 @@ public class IitWorkflow extends IitWorkflowData{
             this.certificate = wf.certificate;
         if (wf.code != null)    
             this.code = wf.code;
-        if (wf.company != 0)
+        if (wf.company!=null)
             this.company = wf.company;
         if (wf.consumer != null)
             this.consumer = wf.consumer;
@@ -51,7 +51,7 @@ public class IitWorkflow extends IitWorkflowData{
             this.lost_state = wf.lost_state;
         if (wf.message != null)
             this.message = wf.message;
-        if (wf.packageId != 0)
+        if (wf.packageId != null)
             this.packageId = wf.packageId;
         if (wf.state != null)
             this.state = wf.state;
@@ -60,7 +60,7 @@ public class IitWorkflow extends IitWorkflowData{
      
     };
     
-    public String createWorkflow(int docPackageId) throws Exception {
+    public String createWorkflow(String docPackageId) throws Exception {
         System.err.println("Creating workflow...");
         
         this.method = "POST";
@@ -87,8 +87,8 @@ public class IitWorkflow extends IitWorkflowData{
 
         return res;
     }
-    
-    public int createClient(String uData, String uDocData, String uAddrData) throws Exception{
+    // возвращает id зарегистрированного клиента
+    public String createClient(String uData, String uDocData, String uAddrData) throws Exception{
         System.err.println("Creating client...");
         System.err.println("uData: " + uData);
         System.err.println("uDocData: " + uDocData);
@@ -98,7 +98,6 @@ public class IitWorkflow extends IitWorkflowData{
         this.method = "POST";
         this.uri = String.format("api/workflow/%s/consumer/", this.getId());
         
-        int res;// = 0;
         String url_str = String.format("%s/%s?token=%s", this.url, this.uri, this.SessionToken);
         String response = "";
         IitConsumer consumer_data = new IitConsumer();
@@ -153,10 +152,10 @@ public class IitWorkflow extends IitWorkflowData{
 
         response = iitConn.getData();
         System.err.println("Consumer response: " + response);
-        res = 0;
 
         this.consumerInstance = gson.fromJson(response, IitConsumer.class);//consumer_data;
-        return res;
+        
+        return this.consumerInstance.getId();
     }
  
     // ???
@@ -261,6 +260,28 @@ public class IitWorkflow extends IitWorkflowData{
         
     }
  
+    public String getCertificateSmsState() throws Exception{
+        System.out.println("Getting workflow state...");
+        String resStr = "";
+        method = "GET";
+        
+        String smsId = "";
+        // поиск id sms
+        for(int i = 0; i < regDocs.length; i++)
+                if(regDocs[i].getDocument_type().equals("sms")){
+                    smsId = String.valueOf(regDocs[i].getId());
+                    break;
+                }
+        
+        uri = String.format("api/workflow/%s/certificate/sms/%s", this.getId(), smsId);
+        url_str = String.format("%s/%s?token=%s", this.url, this.uri, this.SessionToken);
+        iitConn = new IITConnection(url_str, method, "application/json");
+        IitRegistrationDocument sms = gson.fromJson(iitConn.getData(), IitRegistrationDocument.class);
+        //resStr = String4CFT.setPar(resStr, "state", sms.getState());
+        //return resStr;
+        return sms.getState();
+    }
+    
     public Blob dowloadDocument(fileSchema docType) throws Exception{
         this.method = "GET";
         String schema_url = "";
@@ -286,7 +307,16 @@ public class IitWorkflow extends IitWorkflowData{
 
         return ret;
     }
-
+    /**
+     * Загружает сканы pdf паспорта и согласия на выпуск ЭП на сервер IITrust
+     * @param passport
+     * @param agreement
+     * @return String
+     * 
+     * В случаем успеха строка с полями "passport" и "agreement"
+     * (статус документа).В случаем ошибка -- строку с полем "error" и текстом
+     * ошибки.
+     */
     public String uploadDocument(Blob passport, Blob agreement) {//throws Exception{
         this.method = "PUT";
         String ret = "";
@@ -313,5 +343,4 @@ public class IitWorkflow extends IitWorkflowData{
         }
         return ret;
     } 
-    
 }

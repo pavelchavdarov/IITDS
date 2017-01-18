@@ -18,6 +18,18 @@ public class String4CFT {
             target = "";
         return target + "^~" + key + "~" + value + "~^";
     }
+    static String getPar(String source, String key){
+        String[] parts = source.split("\\^~");
+
+        for (Integer i = 0; i < parts.length; i++) {
+            if (parts [i].isEmpty()) continue;
+            String[] keyVal = parts [i].split ("~");
+            if (keyVal.length == 0) continue;
+            if(keyVal[0].equals(key))
+                return keyVal[1];
+        }
+        return null;
+    }
     
     static HashMap<String, String> getMap(String source){
         HashMap<String, String> result = new HashMap<String, String>();

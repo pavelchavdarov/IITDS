@@ -22,8 +22,8 @@ public class IitWorkflowData extends IitEntity{
     protected String limited_by;
     protected String code;
     protected String message;
-    protected int packageId;
-    protected int company; 
+    protected String packageId;
+    protected String company; 
     protected int agent;
     protected IitConsumer consumerInstance;
     protected IitRegistrationDocument[] regDocs;
@@ -102,19 +102,19 @@ public class IitWorkflowData extends IitEntity{
         this.message = message;
     }
 
-    public int getPackageId() {
+    public String getPackageId() {
         return packageId;
     }
 
-    public void setPackageId(int packageId) {
+    public void setPackageId(String packageId) {
         this.packageId = packageId;
     }
 
-    public int getCompany() {
+    public String getCompany() {
         return company;
     }
 
-    public void setCompany(int company) {
+    public void setCompany(String company) {
         this.company = company;
     }
 
@@ -141,7 +141,7 @@ public class IitWorkflowData extends IitEntity{
     public void setLost_state(String lost_state) {
         this.lost_state = lost_state;
     }
-   
+    
 }
 /**
  * Класс отражает документ, который необходимо заполнить для регистраци 

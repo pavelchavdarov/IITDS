@@ -22,7 +22,7 @@ public class IitAuth extends IitEntity{
     }
     
     
-    public static void makeAuthEx(String login, String password) throws Exception
+    public void makeAuthEx(String login, String password) throws Exception
     {
         Init();
         
@@ -46,7 +46,7 @@ public class IitAuth extends IitEntity{
         System.err.println("Authentication result: token " + SessionToken);
     }
     
-    public static String makeAuth(String login, String password)
+    public String makeAuth(String login, String password)
     {
         Init();
         

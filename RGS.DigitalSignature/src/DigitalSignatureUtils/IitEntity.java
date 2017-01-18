@@ -18,9 +18,9 @@ public class IitEntity {
     protected static final String url = "http://iitcloud-demo.iitrust.ru";
 
     protected static IITConnectionInterface iitConn;
-    protected static String method;
-    protected static String uri;
-    protected static String url_str;
+    protected String method;
+    protected String uri;
+    protected String url_str;
     protected static String SessionToken;
 
 //    IitEntity() {
