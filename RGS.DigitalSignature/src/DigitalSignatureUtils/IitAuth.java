@@ -46,7 +46,7 @@ public class IitAuth extends IitEntity{
         System.err.println("Authentication result: token " + SessionToken);
     }
     
-    public String makeAuth(String login, String password)
+     public String makeAuth(String login, String password)
     {
         Init();
         

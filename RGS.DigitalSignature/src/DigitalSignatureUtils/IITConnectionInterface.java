@@ -18,6 +18,8 @@ interface IITConnectionInterface{
   public void sendData(String pData) throws Exception;
   public String getData() throws Exception;
   public void sendFile(Blob pBlob) throws Exception;
+  public void sendFile(String fileName) throws Exception;
   public Blob getFile() throws Exception;
+  public void getFile(String fileName) throws Exception;
   
 }

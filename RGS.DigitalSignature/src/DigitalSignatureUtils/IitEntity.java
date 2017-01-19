@@ -15,7 +15,7 @@ import com.google.gson.JsonParser;
  */
 public class IitEntity {
     protected static Gson gson;
-    protected static final String url = "http://iitcloud-demo.iitrust.ru";
+    protected static final String url = "https://iitcloud-demo.iitrust.ru";
 
     protected static IITConnectionInterface iitConn;
     protected String method;

@@ -21,9 +21,6 @@ import oracle.jdbc.OracleDriver;
  */
 public class IITDAO
 {
-//    static String url = "https://iitcloud-demo.iitrust.ru";
-//    static String method = "POST";
-//    static String page = "api/auth/";
     private IITConnectionInterface conn;
     private Gson gson;
     
@@ -78,6 +75,23 @@ public class IITDAO
         return state;
     }
     
+    public static String waitWorkflowStates(String wfStates) throws Exception {
+        int i = 0;
+        String[] states = wfStates.split("\\|\\|");
+        ArrayList<String> stateArr = new ArrayList<String>(Arrays.asList(states));
+        
+        String state = DAO.workflow.getWorkflowState();
+        while(!stateArr.contains(state) && i++ < 30){ // 30 сек.
+            sleep(1000); // "Пять минут, Турецкий" (секунд)
+            state = DAO.workflow.getWorkflowState();
+        }
+        return state;
+    }
+    
+    public static String waitWorkflowState() throws Exception {
+        return DAO.workflow.getWorkflowState();
+    }
+    
     public static String waitCertificateReady() throws Exception{
         String resSrt = "";
         // 1 -- узнаем текущее состояние потока работ
@@ -96,12 +110,20 @@ public class IITDAO
             // пока пропускаем этап получения запроса на сертификат для сверки реквизитов
             wfState = DAO.workflow.setWorkflowState("certificate_issue");
         
-        
         resSrt = String4CFT.setPar(resSrt,"state", wfState);
         
         return resSrt;
-
-
+    }
+    
+    public static String ComfirmCertificateIssue() throws Exception{
+        String resStr = "";
+        try{
+            resStr = DAO.workflow.setWorkflowState("certificate_issue");   
+        }catch(Exception e){
+            resStr = String4CFT.setPar(resStr, "error", e.getMessage());
+        }
+     
+     return resStr;
     }
     
     /**
@@ -113,7 +135,8 @@ public class IITDAO
     private static Blob CreateBlob(String source) throws Exception{
         //resStr= String4CFT.setPar(resStr,"state: ", source);
         //source = String.format("%-1000s", source);
-
+        System.err.println("creating blob...");
+        System.err.println("source: " + source);
         oracle.jdbc.OracleConnection oraConn =
 //                (oracle.jdbc.OracleConnection)DriverManager.getConnection("jdbc:oracle:thin:@test03.msk.russb.org:1521:rbotest2","ibs","12ibs");
          (oracle.jdbc.OracleConnection)new OracleDriver().defaultConnection();
@@ -122,34 +145,10 @@ public class IITDAO
         OutputStream outStream = result.setBinaryStream(1);
         byte[] buf = source.getBytes();
         outStream.write(buf);
-        //outStream.flush();
+        outStream.flush();
         return result;
     }
 
-//////////////////////////////////////
-//    public String getDocPackagesList() throws Exception {
-//        String url = "http://iitcloud-demo.iitrust.ru";
-//        String method = "GET";
-//        String page = "api/agent/document/package";
-//        java.lang.reflect.Type itemsArrType = new TypeToken<IitDocumentPackage[]>() {}.getType();
-//
-//        String res="";
-//        String url_str = String.format("%s/%s?token=%s", url, page,SessionToken);
-//        
-//        conn = new IITConnection(url_str, method, "application/json");
-//        String answer = conn.getData();
-//        System.err.println("response: "+ answer);
-////        packageList = gson.fromJson(answer, itemsArrType);
-//        IitDocumentPackageList packageList = gson.fromJson(answer, IitDocumentPackageList.class);
-//        for (IitDocumentPackage p : packageList.docPackageList){
-//            res = String4CFT.setPar(res, "id", String.valueOf(p.getId()));
-//            res = String4CFT.setPar(res, "title", String.valueOf(p.getTitle()));
-//            res = res + "||";
-//        }
-//        
-//        return res;
-//    }
-    
 //////////////////////////////////////    
     public static void main(String[] args) throws Exception{
         
@@ -163,13 +162,19 @@ public class IITDAO
         String packageList = getDocPackageList(map.get("token"));
         System.out.println("packageList: " + packageList);
         String userId = RegisterClient(uData, uDocData, uAddrData, "35");
-        
+
         System.out.println("userId: " + userId);
+        
+        while(!waitWorkflowState().equals("wait-confirmation-documents-and-sms")){
+            sleep(10000);
+        }
+        GetSignatureAgreementFIO();
+        System.out.println(SendRegDocs("signature-agreement_signed.pdf", "signature-agreement_signed.pdf"));
     }
 
     public static String makeAuth(String login, String password) {
-        if (DAO == null) DAO = new IITDAO();
-        
+//        if (DAO == null) DAO = new IITDAO();
+        DAO = new IITDAO();
         String res = DAO.auth.makeAuth(login, password);
         //DAO.SessionToken = IitAuth.SessionToken;
         return res;
@@ -272,42 +277,28 @@ public class IITDAO
             if(wfState.equals("wait-confirmation-documents-and-sms")){
 //            if (wfState.equals("wait-confirmation-documents-and-sms")){
                 // !! сделать отдельную функцю получения списка регистрационных документов
-                if (DAO.workflow.regDocs != null)
+                if (DAO.workflow.regDocs == null)
                     System.err.println("RegDocList: " + DAO.workflow.getRegDocList());
                 
                 // проверим, ответил ли клиент на смс
-                String smsState = DAO.workflow.getCertificateSmsState();
-                if(smsState.equals("send"))
+//                String smsState = DAO.workflow.getCertificateSmsState();
+//                if(smsState.equals("received"))
                     result = DAO.workflow.dowloadDocument(fileSchema.signatureAgreement);
-                else{
-                    resStr = String4CFT.setPar(resStr,"state: ", smsState);
-                    resStr = String.format("%-1000s", resStr);
-                    result = CreateBlob(resStr);
-                }
+//                else{
+//                    resStr = String4CFT.setPar(resStr,"sms_state: ", smsState);
+//                    resStr = String.format("%-1000s", resStr);
+//                    result = CreateBlob(resStr);
+//                }
             }else {
                 resStr = String4CFT.setPar(resStr,"state: ", wfState);
                 resStr = String.format("%-1000s", resStr);
                 
                 result = CreateBlob(resStr);
-/*              try {
-                    oracle.jdbc.OracleConnection oraConn =
-    //                (oracle.jdbc.OracleConnection)DriverManager.getConnection("jdbc:oracle:thin:@test03.msk.russb.org:1521:rbotest2","ibs","12ibs");
-                     (oracle.jdbc.OracleConnection)new OracleDriver().defaultConnection();
-
-                    result = oracle.sql.BLOB.createTemporary(oraConn, true, oracle.sql.BLOB.DURATION_SESSION);
-                    OutputStream outStream = result.setBinaryStream(1);
-                    byte[] buf = resStr.getBytes();
-                    outStream.write(buf);
-                    outStream.flush();
-
-                } catch (Exception ex) {
-                    System.err.println(ex.getMessage());
-                }
-*/
             }
         }catch(Exception e){
            System.err.println(e.getMessage());
            System.err.println(e);
+           e.printStackTrace();
             
             resStr = String4CFT.setPar(resStr,"error", e.getMessage());
             if (resStr.length()>=1000)
@@ -339,7 +330,50 @@ public class IITDAO
         return result;
     }
     
+    public static String GetSignatureAgreementFIO() throws Exception {
+//        statList.clear();
+//        statList.add("wait-confirmation-documents-and-sms");
+//        statList.add("rejected");
+//        statList.add("wait-order-documents");
+        
+        String result = null;
+        String resStr = "";
+        try{
+            // Предполагаем, что статус потока работ уже wait-confirmation-documents-and-sms
+            String wfState = DAO.workflow.getWorkflowState();
+            if(wfState.equals("wait-confirmation-documents-and-sms")){
+                // !! сделать отдельную функцю получения списка регистрационных документов
+                if (DAO.workflow.regDocs == null)
+                    System.err.println("RegDocList: " + DAO.workflow.getRegDocList());
+                DAO.workflow.dowloadDocument(fileSchema.signatureAgreement, "pdf");
+            }else {
+                resStr = String4CFT.setPar(resStr,"state: ", wfState);
+                resStr = String.format("%-1000s", resStr);
+                
+                result = resStr;
+            }
+        }catch(Exception e){
+           System.err.println(e.getMessage());
+           System.err.println(e);
+           e.printStackTrace();
+            
+            resStr = String4CFT.setPar(resStr,"error", e.getMessage());
+            if (resStr.length()>=1000)
+                resStr = resStr.substring(0, 1000);
+            else
+                resStr = String.format("%-1000s", resStr);
+            
+            result = resStr;
+        }
+        return result;
+    }
+    
     public static String SendRegDocs(Blob passport, Blob agreement){
+       
+       return DAO.workflow.uploadDocument(passport, agreement);
+    }
+    
+    public static String SendRegDocs(String passport, String agreement){
        
        return DAO.workflow.uploadDocument(passport, agreement);
     }

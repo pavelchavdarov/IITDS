@@ -94,7 +94,6 @@ public class IitWorkflow extends IitWorkflowData{
         System.err.println("uDocData: " + uDocData);
         System.err.println("uAddrData: " + uAddrData);
         
-//        String url = "https://iitcloud-demo.iitrust.ru";
         this.method = "POST";
         this.uri = String.format("api/workflow/%s/consumer/", this.getId());
         
@@ -162,7 +161,6 @@ public class IitWorkflow extends IitWorkflowData{
     public String getClientInfo() throws Exception{
         System.out.println("Getting client info...");
         
-//        String url = "https://iitcloud-demo.iitrust.ru";
         this.method = "GET";
         this.uri = String.format("api/workflow/%s/consumer/", id);
         
@@ -183,7 +181,6 @@ public class IitWorkflow extends IitWorkflowData{
     public String getWorkflowState() throws Exception{
         System.out.println("Getting workflow state...");
         
-        //String url = "https://iitcloud-demo.iitrust.ru";
         this.method = "GET";
         this.uri = String.format("api/workflow/%s", this.getId());
         
@@ -206,7 +203,6 @@ public class IitWorkflow extends IitWorkflowData{
     public String setWorkflowState(String status) throws Exception{
         System.out.println("Setting workflow state '"+status+"'");
         
-//        String url = "https://iitcloud-demo.iitrust.ru";
         this.method = "PUT";
         this.uri = String.format("api/workflow/%s", this.id);
         
@@ -227,7 +223,6 @@ public class IitWorkflow extends IitWorkflowData{
     public String getRegDocList() throws Exception{
         System.out.println("Getting registration docs info...");
         
-        //String url = "https://iitcloud-demo.iitrust.ru";
         
         this.method = "GET";
         this.uri = String.format("api/workflow/%s/certificate/file/", id);
@@ -261,7 +256,7 @@ public class IitWorkflow extends IitWorkflowData{
     }
  
     public String getCertificateSmsState() throws Exception{
-        System.out.println("Getting workflow state...");
+        System.out.println("Getting sms state...");
         String resStr = "";
         method = "GET";
         
@@ -279,6 +274,7 @@ public class IitWorkflow extends IitWorkflowData{
         IitRegistrationDocument sms = gson.fromJson(iitConn.getData(), IitRegistrationDocument.class);
         //resStr = String4CFT.setPar(resStr, "state", sms.getState());
         //return resStr;
+        System.out.println("sms state: " + sms.getState());
         return sms.getState();
     }
     
@@ -307,6 +303,32 @@ public class IitWorkflow extends IitWorkflowData{
 
         return ret;
     }
+    
+    public void dowloadDocument(fileSchema docType, String fileSuffix) throws Exception{
+        this.method = "GET";
+        String schema_url = "";
+        Blob ret = null;
+        switch(docType){
+            case signatureAgreement:
+                schema_url = "signature-agreement";
+                break;
+            case certificateReportOps:
+                schema_url = "certificate-report-ops";
+                break;
+            case certificateReportOpsHsm:
+                schema_url = "certificate-report-ops-hsm";
+                break;
+        }
+        
+        this.uri = String.format("api/workflow/%s/report/%s", this.id, schema_url);
+        this.url_str = String.format("%s/%s?token=%s", this.url, this.uri, this.SessionToken);
+        
+        iitConn = new IITConnection(this.url_str, method, "");
+
+        iitConn.getFile(schema_url + "." + fileSuffix);
+        
+    }
+    
     /**
      * Загружает сканы pdf паспорта и согласия на выпуск ЭП на сервер IITrust
      * @param passport
@@ -343,4 +365,36 @@ public class IitWorkflow extends IitWorkflowData{
         }
         return ret;
     } 
+    
+    public String uploadDocument(String passport, String agreement) {//throws Exception{
+        this.method = "PUT";
+        String ret = "";
+        try{
+            for(int i = 0; i < regDocs.length; i++){
+                if(regDocs[i].getDocument_type().equals("internal-passport")){
+                    this.uri = String.format("api/workflow/%s/certificate/file/%s", this.id, regDocs[i].getId());
+                    this.url_str = String.format("%s/%s?token=%s", this.url, this.uri, this.SessionToken);
+                    iitConn = new IITConnection(this.url_str, method, "multipart/form-data");
+                    iitConn.sendFile(passport);
+                    String res = iitConn.getData();
+                    System.err.println(res);
+                    regDocs[i] = gson.fromJson(res, IitRegistrationDocument.class);
+                    ret = String4CFT.setPar(ret, "passport", regDocs[i].getState());
+                }else if(regDocs[i].getDocument_type().equals("signature-agreement")){
+                    this.uri = String.format("api/workflow/%s/certificate/file/%s", this.id, regDocs[i].getId());
+                    this.url_str = String.format("%s/%s?token=%s", this.url, this.uri, this.SessionToken);
+                    iitConn = new IITConnection(this.url_str, method, "multipart/form-data");
+                    iitConn.sendFile(agreement);
+                    String res = iitConn.getData();
+                    System.err.println(res);
+                    regDocs[i] = gson.fromJson(res, IitRegistrationDocument.class);
+                    ret = String4CFT.setPar(ret, "agreement", regDocs[i].getState());
+                }
+            }
+        }catch(Exception e){
+            ret = String4CFT.setPar(ret, "error", e.getMessage());
+        }
+        return ret;
+    }
+    
 }

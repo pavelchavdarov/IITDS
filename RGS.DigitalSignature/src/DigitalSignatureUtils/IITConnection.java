@@ -5,12 +5,10 @@
  */
 package DigitalSignatureUtils;
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,21 +17,13 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
-import java.net.MalformedURLException;
 import java.net.Proxy;
 import java.net.URL;
-import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.sql.Blob;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.net.ssl.HttpsURLConnection;
-import javax.sql.rowset.serial.SerialBlob;
 import oracle.jdbc.OracleDriver;
+import sun.misc.BASE64Encoder;
 
 /**
  *
@@ -44,6 +34,8 @@ public class IITConnection implements IITConnectionInterface{
 
     private HttpURLConnection conn;
     private Proxy proxy;
+    
+    private static final String boundary = "----WebKitFormBoundary7MA4YWxkTrZu0gW";
 
     public IITConnection(String pUrl, String pMethod, String pContentType) throws Exception {
         this.getConnection(pUrl, pMethod, pContentType);
@@ -55,8 +47,8 @@ public class IITConnection implements IITConnectionInterface{
     public HttpURLConnection getConnection(String pUrl, String pMethod, String pContentType) throws Exception{
         URL url = null;
         // пока заглушка
-        //proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("10.95.17.46", 8080));
-        proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("10.95.5.19", 8888));
+        proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("10.95.17.46", 8080));
+ //       proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("10.95.5.19", 8888));
 //        proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("10.101.20.32", 3128));
         System.err.println("Connecting to " + pUrl + " ...");
         url = new URL(pUrl);
@@ -68,6 +60,8 @@ public class IITConnection implements IITConnectionInterface{
         conn.setConnectTimeout(60000);
         conn.setRequestMethod(pMethod);
         if(!pMethod.equals("GET")){
+            if(pContentType.equals("multipart/form-data"))
+                pContentType += "; boundary=" + boundary;
             conn.setRequestProperty("Content-Type", pContentType/*"application/json"*/);
             if(pContentType.equals("application/json"))
                 conn.setRequestProperty("charset", "utf-8");
@@ -78,8 +72,8 @@ public class IITConnection implements IITConnectionInterface{
 
     @Override
     public void sendData(String pData) throws Exception{
-
-        OutputStreamWriter outstream = new OutputStreamWriter (conn.getOutputStream (), "UTF-8");
+        OutputStream os = conn.getOutputStream ();
+        OutputStreamWriter outstream = new OutputStreamWriter (os, "UTF-8");
         BufferedWriter wr = new BufferedWriter (outstream);
         wr.write(pData);
         wr.flush();
@@ -101,13 +95,13 @@ public class IITConnection implements IITConnectionInterface{
                 while (in.read(cbuf) != -1) {
                     result += String.valueOf(cbuf);
                 }
-                JsonParser jParser = new JsonParser();
-                JsonObject jObj = (JsonObject)jParser.parse(result);
-                if (jObj != null && jObj.has("detail")){
-                    Exception ex = new Exception(jObj.get("detail").getAsString());
+//                JsonParser jParser = new JsonParser();
+//                JsonObject jObj = (JsonObject)jParser.parse(result);
+//                if (jObj != null && jObj.has("detail")){
+                    Exception ex = new Exception(result);
                     throw ex;
-                }
-                throw e;
+ //               }
+                //throw e;
             }
             BufferedReader in = new BufferedReader(instrean);
 //            while ((inputLine = in.readLine()) != null) {
@@ -125,22 +119,120 @@ public class IITConnection implements IITConnectionInterface{
     
     public void sendFile(Blob pBlob) throws Exception{
         final String ContentDisposition = "Content-Disposition: form-data; name=\"path\"; filename=\"\"";
-        final String ContentType = "application/pdf";
+        final String ContentType = "Content-Type: application/pdf";
         final String CRLF = "\r\n"; 
         byte[] buf = new byte[1];
         
         OutputStream outStream = conn.getOutputStream ();
+        DataOutputStream wr = new DataOutputStream(outStream);
         // пишем раздел
-        outStream.write(ContentDisposition.getBytes());
-        outStream.write(CRLF.getBytes());
-        outStream.write(ContentType.getBytes());
-        outStream.write(CRLF.getBytes());
+        wr.write(ContentDisposition.getBytes());
+        //outStream.write(ContentDisposition.getBytes());
+        wr.write(CRLF.getBytes());
+        //outStream.write(CRLF.getBytes());
+        wr.write(ContentType.getBytes());
+        //outStream.write(ContentType.getBytes());
+        wr.write(CRLF.getBytes());
+        //outStream.write(CRLF.getBytes());
+        wr.write(CRLF.getBytes());
+        //outStream.write(CRLF.getBytes());
         
         InputStream inStream = pBlob.getBinaryStream();
         // пишем содержимое файла
         while(inStream.read(buf) != -1){
-            outStream.write(buf);
+            wr.write(buf);
         }
+        wr.flush();
+        wr.close();
+    }
+    
+    public void sendFile(String fileName) throws Exception{
+        final String ContentDisposition = "Content-Disposition: form-data; name=\"path\"; filename=\"\";";
+        final String ContentType = "Content-Type: application/pdf";
+        final String CRLF = "\r\n"; 
+        byte[] buf = new byte[1];
+        
+        
+        OutputStream outStream = conn.getOutputStream ();
+        DataOutputStream wr = new DataOutputStream(outStream);
+        
+        // пишем раздел
+        System.err.print(boundary);
+        wr.write(boundary.getBytes());
+        
+        System.err.print(CRLF);
+        wr.write(CRLF.getBytes());
+        
+        System.err.print(ContentDisposition);
+        wr.write(ContentDisposition.getBytes());
+        //outStream.write(ContentDisposition.getBytes());
+        
+        System.err.print(CRLF);
+        wr.write(CRLF.getBytes());
+        //outStream.write(CRLF.getBytes());
+        
+        System.err.print(ContentType);
+        wr.write(ContentType.getBytes());
+        //outStream.write(ContentType.getBytes());
+        
+        System.err.print(CRLF);
+        wr.write(CRLF.getBytes());
+        //outStream.write(CRLF.getBytes());
+        
+        System.err.print(CRLF);
+        wr.write(CRLF.getBytes());
+        //outStream.write(CRLF.getBytes());
+        
+        FileInputStream fis = new FileInputStream(fileName);
+        FileOutputStream fos = new FileOutputStream(fileName + "_bcc");
+        buf =  new byte[fis.available()];
+        BASE64Encoder encoder = new BASE64Encoder();
+        while(fis.read(buf) != -1){
+           wr.write(buf);
+           fos.write(buf);
+           
+        }
+        fis.close();
+        fos.close();
+        
+        System.err.print(CRLF);
+        wr.write(CRLF.getBytes());
+        
+        System.err.println(boundary);
+        wr.write(boundary.getBytes());
+        wr.flush();
+        wr.close();
+
+//        outStream.write(boundary.getBytes());
+//        outStream.write(CRLF.getBytes());
+//        outStream.write(ContentDisposition.getBytes());
+//        outStream.write(CRLF.getBytes());
+//        outStream.write(ContentType.getBytes());
+//        outStream.write(CRLF.getBytes());
+//        outStream.write(CRLF.getBytes());
+//
+//        FileInputStream fis = new FileInputStream(fileName);
+//        WritableByteChannel wbc = Channels.newChannel(outStream);
+//        long filePosition = 0;
+//        long transferedBytes = fis.getChannel().transferTo(filePosition, Long.MAX_VALUE, wbc);
+//        while(transferedBytes == Long.MAX_VALUE){
+//            filePosition += Long.MAX_VALUE;
+//            transferedBytes = fis.getChannel().transferTo(filePosition, Long.MAX_VALUE, wbc);
+//        }
+//        
+//        outStream.write(CRLF.getBytes());
+//        outStream.write(boundary.getBytes());
+//        outStream.write(CRLF.getBytes());
+        
+//        wr.flush();
+//        wbc.close();
+//        fis.close();
+        
+////        InputStream inStream = pBlob.getBinaryStream();
+////        // пишем содержимое файла
+////        while(inStream.read(buf) != -1){
+////            outStream.write(buf);
+////        }
     }
     
     public Blob getFile() throws Exception{
@@ -199,4 +291,25 @@ public class IITConnection implements IITConnectionInterface{
        // }
         //return null;
     }
+    
+    public void getFile(String fileName) throws Exception{
+        if (conn != null) {
+            InputStream inStream = conn.getInputStream();
+
+            ReadableByteChannel rbc = Channels.newChannel(conn.getInputStream());
+            FileOutputStream fos = new FileOutputStream(fileName);
+            
+            long filePosition = 0;
+            long transferedBytes = fos.getChannel().transferFrom(rbc, filePosition, Long.MAX_VALUE);
+            
+            while(transferedBytes == Long.MAX_VALUE){
+                filePosition += transferedBytes;
+                transferedBytes = fos.getChannel().transferFrom(rbc, filePosition, Long.MAX_VALUE);
+            }
+            rbc.close();
+            fos.close();
+        }
+    }
+    
+    
 }
