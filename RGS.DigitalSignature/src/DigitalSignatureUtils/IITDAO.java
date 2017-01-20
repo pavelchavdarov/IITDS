@@ -156,6 +156,10 @@ public class IITDAO
         String uDocData = "^~type~internal-passport~^^~series~8005~^^~number~827104~^^~issue_code~022-001~^^~issue~ДЕМСКИМ РОВД ГОР. УФЫ РЕСП. БАШКОРТОСТАН~^^~issued~2005-07-13~^";
         String uAddrData = "^~type~permanent~^^~region~02~^^~city~Уфа~^^~street~Ухтомского~^^~house~22~^^~apartment~90~^";
         
+//        String uData = "^~last_name~Чавдаров~^^~first_name~Павел~^^~middle_name~Георгиевич~^^~birthed~1984-08-22~^^~phone~79177978047~^^~gender~M~^";
+//        String uDocData = "^~type~internal-passport~^^~series~8005~^^~number~812008~^^~issue_code~022-005~^^~issue~Орджоникидзевский РОВД Г. УФЫ~^^~issued~2005-04-14~^";
+//        String uAddrData ="";// "^~type~permanent~^^~region~02~^^~city~Уфа~^^~street~Комсомольская~^^~house~21~^^~apartment~18~^";
+
         String token = makeAuth("deprgs-demo", "321qwe654");
         HashMap<String, String> map = String4CFT.getMap(token);
         System.out.println(token);
@@ -164,12 +168,13 @@ public class IITDAO
         String userId = RegisterClient(uData, uDocData, uAddrData, "35");
 
         System.out.println("userId: " + userId);
-        
-        while(!waitWorkflowState().equals("wait-confirmation-documents-and-sms")){
+        while(waitWorkflowState().equals("validate-consumer-data")){
             sleep(10000);
         }
-        GetSignatureAgreementFIO();
-        System.out.println(SendRegDocs("signature-agreement_signed.pdf", "signature-agreement_signed.pdf"));
+        System.out.println(GetSignatureAgreementFIO());
+        System.out.println(SendRegDocs("signature-agreement.pdf", "signature-agreement.pdf"));
+        //System.out.println("docs to sign: " + getDocList());
+        //System.out.println(SendDocToSign("signature-agreement.pdf"));
     }
 
     public static String makeAuth(String login, String password) {
@@ -190,6 +195,11 @@ public class IITDAO
 //            DAO.SessionToken = token;
 //        }
         return IitDocumentPackageList.getDocPackagesList();
+    }
+    
+    public static String getDocList(){
+        if (DAO == null) DAO = new IITDAO();
+        return DAO.workflow.getDocList();
     }
     /**
      * Создает поток работ по пакету документов packageId
@@ -337,7 +347,7 @@ public class IITDAO
 //        statList.add("wait-order-documents");
         
         String result = null;
-        String resStr = "";
+        String resStr = fileSchema.signatureAgreement +  ".pdf";
         try{
             // Предполагаем, что статус потока работ уже wait-confirmation-documents-and-sms
             String wfState = DAO.workflow.getWorkflowState();
@@ -377,4 +387,10 @@ public class IITDAO
        
        return DAO.workflow.uploadDocument(passport, agreement);
     }
+    
+    public static String SendDocToSign(String passport){
+       
+       return DAO.workflow.SendDocToSign(passport);
+    }
+
 }

@@ -18,7 +18,7 @@ import java.util.List;
 public class IitDocumentPackageList extends IitEntity{
     
     public static String getDocPackagesList() {
-        String url = "http://iitcloud-demo.iitrust.ru";
+        String url = "https://iitcloud-demo.iitrust.ru";
         String method = "GET";
         String page = "api/agent/document/package";
         java.lang.reflect.Type itemsArrType = new TypeToken<DigitalSignatureUtils.IitDocumentPackage[]>() {}.getType();

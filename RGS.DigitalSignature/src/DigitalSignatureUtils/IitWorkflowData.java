@@ -27,6 +27,7 @@ public class IitWorkflowData extends IitEntity{
     protected int agent;
     protected IitConsumer consumerInstance;
     protected IitRegistrationDocument[] regDocs;
+    protected DocToSign[] docsToSign;
 
     IitWorkflowData(){
         Init();
@@ -525,11 +526,92 @@ class IitIdentity {
     }
 }
 
-/**
- * Типы документов для печати.
- * Балнки документов необходимо скачать по URL 
- * /api/workflow/{Идентификатор потока работ}/report/{schema}
- * 
- * @author p.chavdarov
- */
 
+class DocToSign{
+    private String id;
+    private String title;
+    private Boolean required;
+    private Boolean unlimited;
+    protected ArrayList<DocProperty> properties;
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public Boolean getRequired() {
+        return required;
+    }
+
+    public void setRequired(Boolean required) {
+        this.required = required;
+    }
+
+    public Boolean getUnlimited() {
+        return unlimited;
+    }
+
+    public void setUnlimited(Boolean unlimited) {
+        this.unlimited = unlimited;
+    }
+   
+}
+
+class DocProperty{
+    private String id;
+    private String title;
+    private String type;
+    private String error_message;
+    private String regular_expression_value;
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public String getError_message() {
+        return error_message;
+    }
+
+    public void setError_message(String error_message) {
+        this.error_message = error_message;
+    }
+
+    public String getRegular_expression_value() {
+        return regular_expression_value;
+    }
+
+    public void setRegular_expression_value(String regular_expression_value) {
+        this.regular_expression_value = regular_expression_value;
+    }
+}

@@ -21,9 +21,11 @@ import java.net.Proxy;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
+import java.nio.channels.WritableByteChannel;
 import java.sql.Blob;
 import oracle.jdbc.OracleDriver;
 import sun.misc.BASE64Encoder;
+//import sun.misc.BASE64Encoder;
 
 /**
  *
@@ -50,6 +52,7 @@ public class IITConnection implements IITConnectionInterface{
         proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("10.95.17.46", 8080));
  //       proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("10.95.5.19", 8888));
 //        proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("10.101.20.32", 3128));
+//        proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("10.101.20.21", 8888));
         System.err.println("Connecting to " + pUrl + " ...");
         url = new URL(pUrl);
 
@@ -146,62 +149,72 @@ public class IITConnection implements IITConnectionInterface{
         wr.close();
     }
     
+    
     public void sendFile(String fileName) throws Exception{
-        final String ContentDisposition = "Content-Disposition: form-data; name=\"path\"; filename=\"\";";
-        final String ContentType = "Content-Type: application/pdf";
+        final String ContentDisposition = "Content-Disposition: form-data; name=\"path\"; filename=\"\"";
+        final String ContentType = "Content-Type: multipart/pdf";
         final String CRLF = "\r\n"; 
+        final String LF = "\n"; 
         byte[] buf = new byte[1];
-        
+        FileOutputStream fos = new FileOutputStream(fileName + "_bcc");
         
         OutputStream outStream = conn.getOutputStream ();
         DataOutputStream wr = new DataOutputStream(outStream);
-        
+
         // пишем раздел
-        System.err.print(boundary);
+//        wr.write(CRLF.getBytes());
         wr.write(boundary.getBytes());
-        
-        System.err.print(CRLF);
+        fos.write(boundary.getBytes());
         wr.write(CRLF.getBytes());
-        
-        System.err.print(ContentDisposition);
+        fos.write(CRLF.getBytes());
         wr.write(ContentDisposition.getBytes());
-        //outStream.write(ContentDisposition.getBytes());
-        
-        System.err.print(CRLF);
+        fos.write(ContentDisposition.getBytes());
         wr.write(CRLF.getBytes());
-        //outStream.write(CRLF.getBytes());
-        
-        System.err.print(ContentType);
+        fos.write(CRLF.getBytes());
         wr.write(ContentType.getBytes());
-        //outStream.write(ContentType.getBytes());
-        
-        System.err.print(CRLF);
+        fos.write(ContentType.getBytes());
         wr.write(CRLF.getBytes());
-        //outStream.write(CRLF.getBytes());
-        
-        System.err.print(CRLF);
+        fos.write(CRLF.getBytes());
         wr.write(CRLF.getBytes());
+        fos.write(CRLF.getBytes());
+        wr.write(CRLF.getBytes());
+        fos.write(CRLF.getBytes());
+        wr.flush();
+        fos.flush();
+//        wr.write(CRLF.getBytes());
         //outStream.write(CRLF.getBytes());
         
         FileInputStream fis = new FileInputStream(fileName);
-        FileOutputStream fos = new FileOutputStream(fileName + "_bcc");
-        buf =  new byte[fis.available()];
+        int fileSize = fis.available();
+        buf =  new byte[fileSize];
+        
         BASE64Encoder encoder = new BASE64Encoder();
         while(fis.read(buf) != -1){
-           wr.write(buf);
-           fos.write(buf);
-           
+           wr.write(encoder.encode(buf).getBytes());
+           fos.write(encoder.encode(buf).getBytes());
         }
+//        wr.write("<body>".getBytes());
         fis.close();
-        fos.close();
-        
-        System.err.print(CRLF);
-        wr.write(CRLF.getBytes());
-        
-        System.err.println(boundary);
-        wr.write(boundary.getBytes());
+//        fos.close();
         wr.flush();
+        fos.flush();
+        //System.err.print(CRLF);
+        //wr.write(CRLF.getBytes());
+
+        wr.write(CRLF.getBytes());
+        fos.write(CRLF.getBytes());
+        wr.write(CRLF.getBytes());
+        fos.write(CRLF.getBytes());
+        
+        wr.write(boundary.getBytes());
+        fos.write(boundary.getBytes());
+        wr.write(CRLF.getBytes());
+        fos.write(CRLF.getBytes());
+        
+        wr.flush();
+        fos.flush();
         wr.close();
+        fos.close();
 
 //        outStream.write(boundary.getBytes());
 //        outStream.write(CRLF.getBytes());
@@ -234,6 +247,115 @@ public class IITConnection implements IITConnectionInterface{
 ////            outStream.write(buf);
 ////        }
     }
+    
+    
+public void sendFileToSign(String fileName, String docId) throws Exception{
+        final String ContentDisposition = "Content-Disposition: form-data; name=\"path\"; filename=\""+fileName+"\"";
+        final String ContentDisposition2 = "Content-Disposition: form-data; name=\"document\"";
+//        final String ContentType = "Content-Type: application/pdf";
+        final String ContentType = "Content-Type:";
+        final String CRLF = "\r\n"; 
+        byte[] buf = new byte[1];
+        
+        
+        OutputStream outStream = conn.getOutputStream ();
+        DataOutputStream wr = new DataOutputStream(outStream);
+        
+//////        // пишем раздел
+//////        System.err.print(CRLF);
+//////        wr.write(CRLF.getBytes());
+//////        
+//////        System.err.print(boundary);
+//////        wr.write(boundary.getBytes());
+//////        
+//////        System.err.print(CRLF);
+//////        wr.write(CRLF.getBytes());
+//////        
+//////        System.err.print(ContentDisposition);
+//////        wr.write(ContentDisposition.getBytes());
+//////        //outStream.write(ContentDisposition.getBytes());
+//////        
+//////        System.err.print(CRLF);
+//////        wr.write(CRLF.getBytes());
+//////        //outStream.write(CRLF.getBytes());
+//////        
+//////        System.err.print(ContentType);
+//////        wr.write(ContentType.getBytes());
+//////        //outStream.write(ContentType.getBytes());
+//////        
+//////        System.err.print(CRLF);
+//////        wr.write(CRLF.getBytes());
+//////        //outStream.write(CRLF.getBytes());
+//////        
+//////        System.err.print(CRLF);
+//////        wr.write(CRLF.getBytes());
+//////        //outStream.write(CRLF.getBytes());
+//////        
+//////        FileInputStream fis = new FileInputStream(fileName);
+//////        FileOutputStream fos = new FileOutputStream(fileName + "_bcc");
+//////        buf =  new byte[fis.available()];
+////////        BASE64Encoder encoder = new BASE64Encoder();
+//////        while(fis.read(buf) != -1){
+//////           wr.write(buf);
+//////           fos.write(buf);
+//////           System.err.print(buf);
+//////        }
+////////        wr.write("<body>".getBytes());
+//////        fis.close();
+//////        fos.close();
+//////        
+//////        System.err.print(CRLF);
+//////        wr.write(CRLF.getBytes());
+//////        System.err.print(CRLF);
+//////        wr.write(CRLF.getBytes());
+//////        
+//////        System.err.println(boundary);
+//////        wr.write(boundary.getBytes());
+//////        System.err.print(CRLF);
+//////        wr.write(CRLF.getBytes());
+//////        
+//////        wr.flush();
+//////        wr.close();
+
+        wr.write(boundary.getBytes());
+        wr.write(CRLF.getBytes());
+        wr.write(ContentDisposition.getBytes());
+        wr.write(CRLF.getBytes());
+        wr.write(ContentType.getBytes());
+        wr.write(CRLF.getBytes());
+        wr.write(CRLF.getBytes());
+
+        FileInputStream fis = new FileInputStream(fileName);
+        WritableByteChannel wbc = Channels.newChannel(outStream);
+        long filePosition = 0;
+        long transferedBytes = fis.getChannel().transferTo(filePosition, Long.MAX_VALUE, wbc);
+        while(transferedBytes == Long.MAX_VALUE){
+            filePosition += Long.MAX_VALUE;
+            transferedBytes = fis.getChannel().transferTo(filePosition, Long.MAX_VALUE, wbc);
+        }
+        wbc.close();
+        fis.close();
+        
+        wr.write(CRLF.getBytes());
+        wr.write(boundary.getBytes());
+        wr.write(CRLF.getBytes());
+        wr.write(ContentDisposition2.getBytes());
+        wr.write(CRLF.getBytes());
+        wr.write(CRLF.getBytes());
+        
+        wr.write(docId.getBytes());
+        wr.write(CRLF.getBytes());
+        wr.write(boundary.getBytes());
+        
+        wr.flush();
+        
+        
+////        InputStream inStream = pBlob.getBinaryStream();
+////        // пишем содержимое файла
+////        while(inStream.read(buf) != -1){
+////            outStream.write(buf);
+////        }
+    }    
     
     public Blob getFile() throws Exception{
         

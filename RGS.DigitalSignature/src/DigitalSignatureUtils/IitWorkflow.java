@@ -254,6 +254,42 @@ public class IitWorkflow extends IitWorkflowData{
 
         
     }
+    
+    public String getDocList() {//throws Exception{
+        System.out.println("Getting registration docs info...");
+        
+        
+        this.method = "GET";
+        this.uri = String.format("api/workflow/%s/document/file", id);
+        java.lang.reflect.Type docsArrType = new TypeToken<DocToSign[]>() {}.getType();
+        
+        
+        String responce;
+        String ret = "";
+        this.url_str = String.format("%s/%s?token=%s", this.url, this.uri, this.SessionToken);
+        try{
+            iitConn = new IITConnection(this.url_str, method, "application/json");
+
+            responce = iitConn.getData();
+            this.docsToSign = gson.fromJson(responce, docsArrType);
+            System.out.println(String.format("DocList: %s", responce));
+            //ret = responce;
+    
+            for(DocToSign doc: docsToSign){
+                ret = String4CFT.setPar(ret, "id", doc.getId());
+                ret = String4CFT.setPar(ret, "title", doc.getTitle());
+                ret = String4CFT.setPar(ret, "required", String.valueOf(doc.getRequired()));
+                ret = String4CFT.setPar(ret, "unlimited", String.valueOf(doc.getUnlimited()));
+                // сейчас properties пустые, так что пока не будем запорачиваться с их передачей
+                //ret = String4CFT.setPar(ret, "title", doc.getTitle());
+                //ret = String4CFT.setPar(ret, "id", String.valueOf(doc.getId()));
+                ret += "||";
+            }
+        }catch(Exception e){
+            ret = String4CFT.setPar(ret, "error", e.getMessage());
+        }
+        return ret;
+    }
  
     public String getCertificateSmsState() throws Exception{
         System.out.println("Getting sms state...");
@@ -389,6 +425,29 @@ public class IitWorkflow extends IitWorkflowData{
                     System.err.println(res);
                     regDocs[i] = gson.fromJson(res, IitRegistrationDocument.class);
                     ret = String4CFT.setPar(ret, "agreement", regDocs[i].getState());
+                }
+            }
+        }catch(Exception e){
+            ret = String4CFT.setPar(ret, "error", e.getMessage());
+        }
+        return ret;
+    }
+    
+    public String SendDocToSign(String docName){
+        this.method = "POST";
+        String ret = "";
+        int docs = docsToSign.length;
+        
+        this.uri = String.format("api/workflow/%s/file/", this.id);
+        this.url_str = String.format("%s/%s?token=%s", this.url, this.uri, this.SessionToken);
+        try{
+            for(int i = 0; i < docs; i++){
+                if(docsToSign[i].getTitle().equals("Договор на Депозит")){
+                    iitConn = new IITConnection(this.url_str, method, "multipart/form-data");
+                    iitConn.sendFileToSign(docName, docsToSign[i].getId());
+                    ret = iitConn.getData();
+                    System.out.println(ret);
+                    break;
                 }
             }
         }catch(Exception e){
