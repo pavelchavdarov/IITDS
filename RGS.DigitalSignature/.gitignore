@@ -1,2 +1,10 @@
 *.DigitalSignature_v.0.1.jar
 *.class
+/build/
+/test/
+/nbproject/
+/signature-agreement
+/signature-agreement.pdf
+/signature-agreement_signed.pdf
+/signature-agreement_signed.pdf_bcc
+/signature-agreement_signed_copy.pdf
