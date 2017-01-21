@@ -407,7 +407,7 @@ public class IitWorkflow extends IitWorkflowData{
         String ret = "";
         try{
             for(int i = 0; i < regDocs.length; i++){
-                if(regDocs[i].getDocument_type().equals("internal-passport")){
+                /*if(regDocs[i].getDocument_type().equals("internal-passport")){
                     this.uri = String.format("api/workflow/%s/certificate/file/%s", this.id, regDocs[i].getId());
                     this.url_str = String.format("%s/%s?token=%s", this.url, this.uri, this.SessionToken);
                     iitConn = new IITConnection(this.url_str, method, "multipart/form-data");
@@ -416,15 +416,17 @@ public class IitWorkflow extends IitWorkflowData{
                     System.err.println(res);
                     regDocs[i] = gson.fromJson(res, IitRegistrationDocument.class);
                     ret = String4CFT.setPar(ret, "passport", regDocs[i].getState());
-                }else if(regDocs[i].getDocument_type().equals("signature-agreement")){
+                }else*/ if(regDocs[i].getDocument_type().equals("signature-agreement")){
                     this.uri = String.format("api/workflow/%s/certificate/file/%s", this.id, regDocs[i].getId());
                     this.url_str = String.format("%s/%s?token=%s", this.url, this.uri, this.SessionToken);
-                    iitConn = new IITConnection(this.url_str, method, "multipart/form-data");
-                    iitConn.sendFile(agreement);
-                    String res = iitConn.getData();
-                    System.err.println(res);
-                    regDocs[i] = gson.fromJson(res, IitRegistrationDocument.class);
-                    ret = String4CFT.setPar(ret, "agreement", regDocs[i].getState());
+                    iitConn = new IITConnection();
+                    ret = iitConn.sendFilePut(uri+"?token="+this.SessionToken, agreement);
+//                    iitConn = new IITConnection(this.url_str, method, "multipart/form-data");
+//                    iitConn.sendFile(agreement);
+//                    String res = iitConn.getData();
+//                    System.err.println(res);
+//                    regDocs[i] = gson.fromJson(res, IitRegistrationDocument.class);
+//                    ret = String4CFT.setPar(ret, "agreement", regDocs[i].getState());
                 }
             }
         }catch(Exception e){

@@ -173,6 +173,8 @@ public class IITDAO
         }
         System.out.println(GetSignatureAgreementFIO());
         System.out.println(SendRegDocs("signature-agreement.pdf", "signature-agreement.pdf"));
+        
+        System.err.println("RegDocList: " + DAO.workflow.getRegDocList());
         //System.out.println("docs to sign: " + getDocList());
         //System.out.println(SendDocToSign("signature-agreement.pdf"));
     }
@@ -391,6 +393,11 @@ public class IITDAO
     public static String SendDocToSign(String passport){
        
        return DAO.workflow.SendDocToSign(passport);
+    }
+    
+    public static Blob SendDocToSign(Blob doc){
+       
+       return null;
     }
 
 }

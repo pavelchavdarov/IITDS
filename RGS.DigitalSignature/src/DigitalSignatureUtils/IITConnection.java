@@ -8,6 +8,7 @@ package DigitalSignatureUtils;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.DataOutputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -24,11 +25,19 @@ import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
 import java.sql.Blob;
 import oracle.jdbc.OracleDriver;
-import sun.misc.BASE64Encoder;
-
-import org.apache.commons.httpclient.HttpClient;
-
-//import sun.misc.BASE64Encoder;
+import org.apache.http.Header;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpHost;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPut;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.mime.FormBodyPart;
+import org.apache.http.entity.mime.HttpMultipartMode;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.entity.mime.content.FileBody;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 
 /**
  *
@@ -45,8 +54,10 @@ public class IITConnection implements IITConnectionInterface{
     public IITConnection(String pUrl, String pMethod, String pContentType) throws Exception {
         this.getConnection(pUrl, pMethod, pContentType);
     }
-
     
+    public IITConnection(){
+        
+    }
     
     @Override
     public HttpURLConnection getConnection(String pUrl, String pMethod, String pContentType) throws Exception{
@@ -55,11 +66,11 @@ public class IITConnection implements IITConnectionInterface{
         proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("10.95.17.46", 8080));
  //       proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("10.95.5.19", 8888));
 //        proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("10.101.20.32", 3128));
-//        proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("10.101.20.21", 8888));
+//        proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("10.101.20.21", 8080));
         System.err.println("Connecting to " + pUrl + " ...");
         url = new URL(pUrl);
 
-        conn = (HttpURLConnection) url.openConnection(Proxy.NO_PROXY);
+        conn = (HttpURLConnection) url.openConnection(proxy);
         conn.setDoInput(true);
         conn.setDoOutput(true);
         conn.setUseCaches(false);
@@ -153,9 +164,75 @@ public class IITConnection implements IITConnectionInterface{
     }
     
     
+    public String sendFilePut(String uri, String fileName) throws Exception{
+
+        String result = "";
+        char[] cbuf = new char[1];
+        CloseableHttpClient httpClient = HttpClients.createDefault();
+        try{
+            HttpHost target = new HttpHost("iitcloud-demo.iitrust.ru", 443, "https");
+            HttpHost proxy = new HttpHost("10.95.17.46", 8080, "http");
+//            HttpHost proxy = new HttpHost("127.0.0.1", 8080, "http");
+            RequestConfig config = RequestConfig.custom().setProxy(proxy).build();
+//            HttpPut request = new HttpPut("http://iitcloud-demo.iitrust.ru/" + uri);
+            HttpPut request = new HttpPut("/"+uri);
+            request.setHeader("Content-Type", "multipart/form-data; boundary=----WebKitFormBoundaryP42Bh5cCzeeP8O38");
+            
+            request.setConfig(config);
+            
+            FileBody pdfBody = new FileBody(new File(fileName));
+
+//            HttpEntity reqEntity = MultipartEntityBuilder.create().addPart("path", pdfBody).build();
+            MultipartEntityBuilder builder = MultipartEntityBuilder.create()
+                    .setBoundary("----WebKitFormBoundaryP42Bh5cCzeeP8O38")
+                    .setMode(HttpMultipartMode.BROWSER_COMPATIBLE)
+//                    .setContentType(ContentType.create("text/plain"))
+//                    .addBinaryBody(fileName, new File(fileName));
+//                    .addPart(fileName, pdfBody);
+                    .addBinaryBody( "path",
+                                    new File(fileName),
+                                    ContentType.create("application/pdf"),
+                                    //ContentType.create("text/plain"),
+                                    null);
+                    //.setBoundary(boundary);
+            
+            
+            HttpEntity reqEntity = builder.build();
+                    
+            request.setEntity(reqEntity);
+            
+            
+            
+//            System.out.println(request.toString());
+//            Header[] headers = request.getAllHeaders();
+//            for(Header h : headers){
+//                System.out.println(h.getName() + " : " + h.getValue());
+//            }
+            
+            CloseableHttpResponse response = httpClient.execute(target, request);
+//            CloseableHttpResponse response = httpClient.execute(request);
+            try{
+                HttpEntity resEntity = response.getEntity();
+                if (resEntity  != null){
+                    InputStreamReader inStream = new InputStreamReader(resEntity.getContent());
+                    BufferedReader br = new BufferedReader(inStream);
+                    while(br.read(cbuf) != -1){
+                        result+=String.valueOf(cbuf);
+                    }
+                }
+            }finally{
+                response.close();
+            }
+        }finally{
+            httpClient.close();
+        }
+        System.out.println("result: "+result);
+        return result;
+    }
+    
     public void sendFile(String fileName) throws Exception{
         final String ContentDisposition = "Content-Disposition: form-data; name=\"path\"; filename=\"\"";
-        final String ContentType = "Content-Type: pdf";
+        final String ContentType = "Content-Type: multipart/pdf";
         final String CRLF = "\r\n"; 
         final String LF = "\n"; 
         byte[] buf = new byte[1];
@@ -191,12 +268,9 @@ public class IITConnection implements IITConnectionInterface{
         int fileSize = fis.available();
         buf =  new byte[fileSize];
         
-        BASE64Encoder encoder = new BASE64Encoder();
         while(fis.read(buf) != -1){
-           wr.write(encoder.encode(buf).getBytes("UTF-8"));
-           //wr.write(buf);
-           fos.write(encoder.encode(buf).getBytes("UTF-8"));
-//           fos.write(buf);
+           wr.write(buf);
+           fos.write(buf);
         }
 //        wr.write("<body>".getBytes());
         fis.close();

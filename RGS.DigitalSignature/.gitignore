@@ -8,3 +8,6 @@
 /signature-agreement_signed.pdf
 /signature-agreement_signed.pdf_bcc
 /signature-agreement_signed_copy.pdf
+*.txt
+*.*_bcc
+*.pdf
