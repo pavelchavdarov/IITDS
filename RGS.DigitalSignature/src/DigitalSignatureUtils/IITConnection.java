@@ -25,6 +25,9 @@ import java.nio.channels.WritableByteChannel;
 import java.sql.Blob;
 import oracle.jdbc.OracleDriver;
 import sun.misc.BASE64Encoder;
+
+import org.apache.commons.httpclient.HttpClient;
+
 //import sun.misc.BASE64Encoder;
 
 /**
@@ -56,7 +59,7 @@ public class IITConnection implements IITConnectionInterface{
         System.err.println("Connecting to " + pUrl + " ...");
         url = new URL(pUrl);
 
-        conn = (HttpURLConnection) url.openConnection(proxy);
+        conn = (HttpURLConnection) url.openConnection(Proxy.NO_PROXY);
         conn.setDoInput(true);
         conn.setDoOutput(true);
         conn.setUseCaches(false);
@@ -152,7 +155,7 @@ public class IITConnection implements IITConnectionInterface{
     
     public void sendFile(String fileName) throws Exception{
         final String ContentDisposition = "Content-Disposition: form-data; name=\"path\"; filename=\"\"";
-        final String ContentType = "Content-Type: multipart/pdf";
+        final String ContentType = "Content-Type: pdf";
         final String CRLF = "\r\n"; 
         final String LF = "\n"; 
         byte[] buf = new byte[1];
@@ -190,8 +193,10 @@ public class IITConnection implements IITConnectionInterface{
         
         BASE64Encoder encoder = new BASE64Encoder();
         while(fis.read(buf) != -1){
-           wr.write(encoder.encode(buf).getBytes());
-           fos.write(encoder.encode(buf).getBytes());
+           wr.write(encoder.encode(buf).getBytes("UTF-8"));
+           //wr.write(buf);
+           fos.write(encoder.encode(buf).getBytes("UTF-8"));
+//           fos.write(buf);
         }
 //        wr.write("<body>".getBytes());
         fis.close();
