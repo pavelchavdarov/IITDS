@@ -52,7 +52,7 @@ public class IITConnection implements IITConnectionInterface{
     private static final String boundary = "----WebKitFormBoundary7MA4YWxkTrZu0gW";
 
     public IITConnection(String pUrl, String pMethod, String pContentType) throws Exception {
-        this.getConnection(pUrl, pMethod, pContentType);
+        this.initConnection(pUrl, pMethod, pContentType);
     }
     
     public IITConnection(){
@@ -60,7 +60,7 @@ public class IITConnection implements IITConnectionInterface{
     }
     
     @Override
-    public HttpURLConnection getConnection(String pUrl, String pMethod, String pContentType) throws Exception{
+    public void initConnection(String pUrl, String pMethod, String pContentType) throws Exception{
         URL url = null;
         // пока заглушка
         proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("10.95.17.46", 8080));
@@ -70,7 +70,7 @@ public class IITConnection implements IITConnectionInterface{
         System.err.println("Connecting to " + pUrl + " ...");
         url = new URL(pUrl);
 
-        conn = (HttpURLConnection) url.openConnection(proxy);
+        conn = (HttpURLConnection) url.openConnection(Proxy.NO_PROXY);
         conn.setDoInput(true);
         conn.setDoOutput(true);
         conn.setUseCaches(false);
@@ -84,7 +84,6 @@ public class IITConnection implements IITConnectionInterface{
                 conn.setRequestProperty("charset", "utf-8");
         }
         System.err.println("Connection prepared...");
-        return conn;
     }
 
     @Override
@@ -172,9 +171,8 @@ public class IITConnection implements IITConnectionInterface{
         try{
             HttpHost target = new HttpHost("iitcloud-demo.iitrust.ru", 443, "https");
             HttpHost proxy = new HttpHost("10.95.17.46", 8080, "http");
-//            HttpHost proxy = new HttpHost("127.0.0.1", 8080, "http");
-            RequestConfig config = RequestConfig.custom().setProxy(proxy).build();
-//            HttpPut request = new HttpPut("http://iitcloud-demo.iitrust.ru/" + uri);
+//            RequestConfig config = RequestConfig.custom().setProxy(proxy).build();
+            RequestConfig config = RequestConfig.custom().build();
             HttpPut request = new HttpPut("/"+uri);
             request.setHeader("Content-Type", "multipart/form-data; boundary=----WebKitFormBoundaryP42Bh5cCzeeP8O38");
             
@@ -182,13 +180,9 @@ public class IITConnection implements IITConnectionInterface{
             
             FileBody pdfBody = new FileBody(new File(fileName));
 
-//            HttpEntity reqEntity = MultipartEntityBuilder.create().addPart("path", pdfBody).build();
             MultipartEntityBuilder builder = MultipartEntityBuilder.create()
                     .setBoundary("----WebKitFormBoundaryP42Bh5cCzeeP8O38")
                     .setMode(HttpMultipartMode.BROWSER_COMPATIBLE)
-//                    .setContentType(ContentType.create("text/plain"))
-//                    .addBinaryBody(fileName, new File(fileName));
-//                    .addPart(fileName, pdfBody);
                     .addBinaryBody( "path",
                                     new File(fileName),
                                     ContentType.create("application/pdf"),
