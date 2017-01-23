@@ -19,9 +19,10 @@ interface IITConnectionInterface{
   public String getData() throws Exception;
   public void sendFile(Blob pBlob) throws Exception;
   public void sendFile(String fileName) throws Exception;
-  public String sendFiles(String fileName) throws Exception;
+  public String sendRegDoc(String fileName) throws Exception;
   public Blob getFile() throws Exception;
   public void getFile(String fileName) throws Exception;
-  public void sendFileToSign(String fileName, String docId) throws Exception;
+  public String sendDoc(String fileName, String docId) throws Exception;
+  public String sendDoc(Blob file, String docId) throws Exception;
   
 }

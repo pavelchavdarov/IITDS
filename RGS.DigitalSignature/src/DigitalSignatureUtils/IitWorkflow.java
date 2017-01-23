@@ -383,12 +383,12 @@ public class IitWorkflow extends IitWorkflowData{
                 if(regDocs[i].getDocument_type().equals("internal-passport")){
                     this.uri = String.format("api/workflow/%s/certificate/file/%s?token=%s", this.id, regDocs[i].getId(),this.SessionToken);
                     AConn.initConnection(uri, "PUT", "multipart/form-data");
-                    ret += AConn.sendFiles(passport) + "||";
+                    ret += AConn.sendRegDoc(passport) + "||";
 
                 }if(regDocs[i].getDocument_type().equals("signature-agreement")){
                     this.uri = String.format("api/workflow/%s/certificate/file/%s?token=%s", this.id, regDocs[i].getId(),this.SessionToken);
                     AConn.initConnection(uri, "PUT", "multipart/form-data");
-                    ret += AConn.sendFiles(agreement) + "||";
+                    ret += AConn.sendRegDoc(agreement) + "||";
                 }
             }
         }catch(Exception e){
@@ -402,14 +402,14 @@ public class IitWorkflow extends IitWorkflowData{
         try{
             for(int i = 0; i < regDocs.length; i++){
                 if(regDocs[i].getDocument_type().equals("internal-passport")){
-                    this.uri = String.format("api/workflow/%s/certificate/file/%s?token=%s", this.id, regDocs[i].getId(),this.SessionToken);
+                    this.uri = String.format("/api/workflow/%s/certificate/file/%s?token=%s", this.id, regDocs[i].getId(),this.SessionToken);
                     AConn.initConnection(uri, "PUT", "multipart/form-data");
-                    ret += AConn.sendFiles(passport) + "||";
+                    ret += AConn.sendRegDoc(passport) + "||";
 
                 }if(regDocs[i].getDocument_type().equals("signature-agreement")){
-                    this.uri = String.format("api/workflow/%s/certificate/file/%s?token=%s", this.id, regDocs[i].getId(),this.SessionToken);
+                    this.uri = String.format("/api/workflow/%s/certificate/file/%s?token=%s", this.id, regDocs[i].getId(),this.SessionToken);
                     AConn.initConnection(uri, "PUT", "multipart/form-data");
-                    ret += AConn.sendFiles(agreement) + "||";
+                    ret += AConn.sendRegDoc(agreement) + "||";
                 }
             }
         }catch(Exception e){
@@ -418,31 +418,46 @@ public class IitWorkflow extends IitWorkflowData{
         return ret;
     }
     
-    public String SendDocToSign(String docName){
+    public String SendDocToSign(String docName, String docId){
         this.method = "POST";
         String ret = "";
-        int docs = docsToSign.length;
-        
-        this.uri = String.format("api/workflow/%s/file/", this.id);
-        this.url_str = String.format("%s/%s?token=%s", this.url, this.uri, this.SessionToken);
+        this.uri = String.format("/api/workflow/%s/file/?token=%s", this.id, this.SessionToken);
         try{
-            for(int i = 0; i < docs; i++){
-                if(docsToSign[i].getTitle().equals("Договор на Депозит")){
-                    iitConn = new IITConnection(this.url_str, method, "multipart/form-data");
-                    iitConn.sendFileToSign(docName, docsToSign[i].getId());
-                    ret = iitConn.getData();
-                    System.out.println(ret);
-                    break;
-                }
-            }
+            AConn.initConnection(uri, "POST", "multipart/form-data");
+            ret = AConn.sendDoc(docName, docId);
+        
         }catch(Exception e){
             ret = String4CFT.setPar(ret, "error", e.getMessage());
         }
         return ret;
     }
     
-    public String SendDocToSign(Blob doc){
-        return "";
+    public String SendDocToSign(Blob doc, String docId){
+        this.method = "POST";
+        String ret = "";
+        this.uri = String.format("/api/workflow/%s/file/?token=%s", this.id, this.SessionToken);
+        try{
+            AConn.initConnection(uri, "POST", "multipart/form-data");
+            ret = AConn.sendDoc(doc, docId);
+        
+        }catch(Exception e){
+            ret = String4CFT.setPar(ret, "error", e.getMessage());
+        }
+        return ret;
+    }
+    
+    public String getDocDate(String docId){
+        String ret = "";
+//        this.uri = String.format("/api/workflow/%s/file/%s?token=%s", this.id, docId, this.SessionToken);
+        this.uri = String.format("/api/workflow/%s/file/?token=%s", this.id, this.SessionToken);
+        try{
+            AConn.initConnection(uri, "POST", "multipart/form-data");
+            ret = AConn.getDocData();
+        }catch(Exception e){
+            ret = String4CFT.setPar(ret, "error", e.getMessage());
+        }
+        return ret;
+        
     }
     
 }

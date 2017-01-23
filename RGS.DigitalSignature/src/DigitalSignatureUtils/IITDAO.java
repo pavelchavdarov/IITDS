@@ -131,6 +131,17 @@ public class IITDAO
      return resStr;
     }
     
+    public static String ComfirmOrder() throws Exception{
+        String resStr = "";
+        try{
+            resStr = DAO.workflow.setWorkflowState("order-confirm");   
+        }catch(Exception e){
+            resStr = String4CFT.setPar(resStr, "error", e.getMessage());
+        }
+     
+     return resStr;
+    }
+    
     /**
      * Сздает Blob и помещает в первую 1000 чисволов строку source.
      * @param source
@@ -161,7 +172,7 @@ public class IITDAO
 //        String uDocData = "^~type~internal-passport~^^~series~8005~^^~number~827104~^^~issue_code~022-001~^^~issue~ДЕМСКИМ РОВД ГОР. УФЫ РЕСП. БАШКОРТОСТАН~^^~issued~2005-07-13~^";
 //        String uAddrData = "^~type~permanent~^^~region~02~^^~city~Уфа~^^~street~Ухтомского~^^~house~22~^^~apartment~90~^";
 //        
-        String uData = "^~last_name~Чавдароф~^^~first_name~Павел~^^~middle_name~Георгиевич~^^~birthed~1984-08-22~^^~phone~79177978047~^^~gender~M~^";
+        String uData = "^~last_name~Чавдаров~^^~first_name~Степан~^^~middle_name~Георгиевич~^^~birthed~1984-08-22~^^~phone~79177978047~^^~gender~M~^";
         String uDocData = "^~type~internal-passport~^^~series~8005~^^~number~812008~^^~issue_code~022-005~^^~issue~Орджоникидзевский РОВД Г. УФЫ~^^~issued~2005-04-14~^";
         String uAddrData ="";// "^~type~permanent~^^~region~02~^^~city~Уфа~^^~street~Комсомольская~^^~house~21~^^~apartment~18~^";
 
@@ -170,25 +181,45 @@ public class IITDAO
         System.out.println(token);
         String packageList = getDocPackageList(map.get("token"));
         System.out.println("packageList: " + packageList);
-        String userId = RegisterClient(uData, uDocData, uAddrData, "35");
-        
-        while(waitWorkflowState().equals("validate-consumer-data")){
+        String wfId = RegisterClient(uData, uDocData, uAddrData, "35");
+        System.out.print("workflow id: " + wfId);
+        String wfState = waitWorkflowState();
+        while(wfState.equals("validate-consumer-data")){
             sleep(10000);
+            wfState = waitWorkflowState();
         }
-        System.out.println(GetSignatureAgreementFIO());
-        System.out.println(SendRegDocs("signature-agreement.pdf", "signature-agreement.pdf"));
-        
-        //System.err.println("RegDocList: " + DAO.workflow.getRegDocList());
-        while(!waitWorkflowState().equals("wait-certificate-issue")){
-            sleep(10000);
-        }
-        ComfirmCertificateIssue();
-        while(!waitWorkflowState().equals("wait-order-documents")){
-            sleep(10000);
+        if (wfState.equals("wait-confirmation-documents-and-sms")){
+            System.out.println(GetSignatureAgreementFIO());
+            System.out.println(SendRegDocs("signature-agreement.pdf", "signature-agreement.pdf"));
+
+            //System.err.println("RegDocList: " + DAO.workflow.getRegDocList());
+            while(!waitWorkflowState().equals("wait-certificate-issue")){
+                sleep(10000);
+            }
+            ComfirmCertificateIssue();
+            while(!waitWorkflowState().equals("wait-order-documents")){
+                sleep(10000);
+            }
         }
         
         System.out.println("docs to sign: " + getDocList());
-        //System.out.println(SendDocToSign("signature-agreement.pdf"));
+        System.out.println(SendDocToSign("signature-agreement.pdf", "43"));
+        System.out.println(SendDocToSign("signature-agreement.pdf", "44"));
+        
+        while(!waitWorkflowState().equals("wait-order-confirmation")){
+            sleep(10000);
+        }
+        ComfirmOrder();
+        while(!waitWorkflowState().equals("order-sign")){
+            sleep(10000);
+        }
+        while(!waitWorkflowState().equals("complete")){
+            sleep(10000);
+        }
+        
+        System.out.println(getDocDate("43"));
+        
+
     }
 
     public static String makeAuth(String login, String password) {
@@ -402,14 +433,20 @@ public class IITDAO
        return DAO.workflow.SendRegDocs(passport, agreement);
     }
     
-    public static String SendDocToSign(String passport){
+    public static String SendDocToSign(String doc, String docId){
        
-       return DAO.workflow.SendDocToSign(passport);
+       return DAO.workflow.SendDocToSign(doc, docId);
     }
     
-    public static Blob SendDocToSign(Blob doc){
+    public static String SendDocToSign(Blob doc, String docId){
        
-       return null;
+       return DAO.workflow.SendDocToSign(doc, docId);
     }
+    
+    public static String getDocDate(String docId){
+       
+       return DAO.workflow.getDocDate(docId);
+    }
+    
 
 }

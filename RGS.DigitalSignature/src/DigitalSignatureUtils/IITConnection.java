@@ -50,7 +50,9 @@ public class IITConnection implements IITConnectionInterface{
         URL url = null;
         // пока заглушка
 //        proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("10.95.17.46", 8080));
-        proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("10.95.5.19", 8888));
+        proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("127.0.0.1", 8080));        
+//        proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("10.95.5.19", 8888));
+//        proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("127.0.0.1", 8888));        
 //        proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("10.101.20.32", 3128));
 //        proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("10.101.20.21", 8888));
 //        System.err.println("Connecting to " + pUrl + " ...");
@@ -69,7 +71,7 @@ public class IITConnection implements IITConnectionInterface{
             if(pContentType.equals("application/json"))
                 conn.setRequestProperty("charset", "utf-8");
         }
-        
+        conn.connect();
     }
 
     @Override
@@ -153,7 +155,7 @@ public class IITConnection implements IITConnectionInterface{
     }
     
     
-    public String sendFiles(String fileName) throws Exception{
+    public String sendRegDoc(String fileName) throws Exception{
 
         String result = "";
 //        char[] cbuf = new char[1];
@@ -312,125 +314,22 @@ public class IITConnection implements IITConnectionInterface{
     }
     
     
-public void sendFileToSign(String fileName, String docId) throws Exception{
-        final String ContentDisposition = "Content-Disposition: form-data; name=\"path\"; filename=\""+fileName+"\"";
-        final String ContentDisposition2 = "Content-Disposition: form-data; name=\"document\"";
-//        final String ContentType = "Content-Type: application/pdf";
-        final String ContentType = "Content-Type:";
-        final String CRLF = "\r\n"; 
-        byte[] buf = new byte[1];
-        
-        
-        OutputStream outStream = conn.getOutputStream ();
-        DataOutputStream wr = new DataOutputStream(outStream);
-        
-//////        // пишем раздел
-//////        System.err.print(CRLF);
-//////        wr.write(CRLF.getBytes());
-//////        
-//////        System.err.print(boundary);
-//////        wr.write(boundary.getBytes());
-//////        
-//////        System.err.print(CRLF);
-//////        wr.write(CRLF.getBytes());
-//////        
-//////        System.err.print(ContentDisposition);
-//////        wr.write(ContentDisposition.getBytes());
-//////        //outStream.write(ContentDisposition.getBytes());
-//////        
-//////        System.err.print(CRLF);
-//////        wr.write(CRLF.getBytes());
-//////        //outStream.write(CRLF.getBytes());
-//////        
-//////        System.err.print(ContentType);
-//////        wr.write(ContentType.getBytes());
-//////        //outStream.write(ContentType.getBytes());
-//////        
-//////        System.err.print(CRLF);
-//////        wr.write(CRLF.getBytes());
-//////        //outStream.write(CRLF.getBytes());
-//////        
-//////        System.err.print(CRLF);
-//////        wr.write(CRLF.getBytes());
-//////        //outStream.write(CRLF.getBytes());
-//////        
-//////        FileInputStream fis = new FileInputStream(fileName);
-//////        FileOutputStream fos = new FileOutputStream(fileName + "_bcc");
-//////        buf =  new byte[fis.available()];
-////////        BASE64Encoder encoder = new BASE64Encoder();
-//////        while(fis.read(buf) != -1){
-//////           wr.write(buf);
-//////           fos.write(buf);
-//////           System.err.print(buf);
-//////        }
-////////        wr.write("<body>".getBytes());
-//////        fis.close();
-//////        fos.close();
-//////        
-//////        System.err.print(CRLF);
-//////        wr.write(CRLF.getBytes());
-//////        System.err.print(CRLF);
-//////        wr.write(CRLF.getBytes());
-//////        
-//////        System.err.println(boundary);
-//////        wr.write(boundary.getBytes());
-//////        System.err.print(CRLF);
-//////        wr.write(CRLF.getBytes());
-//////        
-//////        wr.flush();
-//////        wr.close();
+public String sendDoc(String fileName, String docId) throws Exception{
+    return null;
+}
 
-        wr.write(boundary.getBytes());
-        wr.write(CRLF.getBytes());
-        wr.write(ContentDisposition.getBytes());
-        wr.write(CRLF.getBytes());
-        wr.write(ContentType.getBytes());
-        wr.write(CRLF.getBytes());
-        wr.write(CRLF.getBytes());
-
-        FileInputStream fis = new FileInputStream(fileName);
-        WritableByteChannel wbc = Channels.newChannel(outStream);
-        long filePosition = 0;
-        long transferedBytes = fis.getChannel().transferTo(filePosition, Long.MAX_VALUE, wbc);
-        while(transferedBytes == Long.MAX_VALUE){
-            filePosition += Long.MAX_VALUE;
-            transferedBytes = fis.getChannel().transferTo(filePosition, Long.MAX_VALUE, wbc);
-        }
-        wbc.close();
-        fis.close();
-        
-        wr.write(CRLF.getBytes());
-        wr.write(boundary.getBytes());
-        wr.write(CRLF.getBytes());
-        wr.write(ContentDisposition2.getBytes());
-        wr.write(CRLF.getBytes());
-        wr.write(CRLF.getBytes());
-        
-        wr.write(docId.getBytes());
-        wr.write(CRLF.getBytes());
-        wr.write(boundary.getBytes());
-        
-        wr.flush();
-        
-        
-////        InputStream inStream = pBlob.getBinaryStream();
-////        // пишем содержимое файла
-////        while(inStream.read(buf) != -1){
-////            outStream.write(buf);
-////        }
-    }    
+public String sendDoc(Blob file, String docId) throws Exception{
+    return null;
+}
     
     public Blob getFile() throws Exception{
         
         oracle.jdbc.OracleConnection oraConn =
                 (oracle.jdbc.OracleConnection)new OracleDriver().defaultConnection();
-//                (oracle.jdbc.OracleConnection)DriverManager.getConnection("jdbc:oracle:thin:@test03.msk.russb.org:1521:rbotest2","ibs","12ibs");
-
         oracle.sql.BLOB retBlob =
                 oracle.sql.BLOB.createTemporary(oraConn,
                                                 true,
                                                 oracle.sql.BLOB.DURATION_SESSION);
-        
         InputStream inStream = conn.getInputStream();
         OutputStream outStream = retBlob.setBinaryStream(1);
 
@@ -450,32 +349,6 @@ public void sendFileToSign(String fileName, String docId) throws Exception{
         System.out.println(retBlob);
         conn.disconnect();
         return retBlob;
-
-        
-//        outStream.write(inStream.read(b));
-
-//        ByteBuffer bbuf = ByteBuffer.allocate(1);
-//        ArrayList<ByteBuffer> byteArr = new ArrayList<ByteBuffer>();
-//        Blob file = null;
-//        if (conn != null) {
-//            ReadableByteChannel rbc = Channels.newChannel(conn.getInputStream());
-//            while (rbc.read(bbuf) != -1 ){
-//                byteArr.add(bbuf);
-//            }
-//            byte[] arr = new byte[byteArr.size()];
-//            for(int i = 0; i < byteArr.size(); i++ ){
-//                arr[i] = byteArr.get(i).array()[0];
-//            }
-//            try {
-//                file = new SerialBlob(arr);
-//            } catch (SQLException e) {
-//                System.err.println(e.getMessage());
-//            }
-////            FileOutputStream fos = new FileOutputStream(fileName);
-//  //          fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
-//            return file;
-       // }
-        //return null;
     }
     
     public void getFile(String fileName) throws Exception{
