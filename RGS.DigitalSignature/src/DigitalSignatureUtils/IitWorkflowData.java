@@ -30,12 +30,12 @@ public class IitWorkflowData extends IitEntity{
     protected DocToSign[] docsToSign;
 
     IitWorkflowData(){
-        Init();
+        //Init();
         //super();
     }
     
     IitWorkflowData(String token){
-        Init();
+        //Init();
         SessionToken = token;
     }
     

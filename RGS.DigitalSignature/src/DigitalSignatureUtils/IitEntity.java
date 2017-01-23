@@ -15,27 +15,26 @@ import com.google.gson.JsonParser;
  */
 public class IitEntity {
     protected static Gson gson;
-    protected static final String url = "https://iitcloud-demo.iitrust.ru";
+    protected static final String url = "http://iitcloud-demo.iitrust.ru";
 
-    protected static IITConnectionInterface iitConn;
+    protected IITConnectionInterface iitConn;
     protected String method;
     protected String uri;
     protected String url_str;
     protected static String SessionToken;
+    protected static A_Connection AConn;
 
-//    IitEntity() {
-//        if (this.gson == null)
-//            this.gson = new Gson();
-//    }
-//    IitEntity(String token) {
-//        if (this.gson == null)
-//            this.gson = new Gson();
-//        this.setSessionToken(token);
-//    }
-    
     public static void Init(){
         if (IitEntity.gson == null)
             IitEntity.gson = new Gson();
+        if (IitEntity.AConn == null){
+            IitEntity.AConn = new A_Connection("iitcloud-demo.iitrust.ru", 80, "http");
+//           AConn.setProxy("10.95.5.19", 8888, "http");
+//            AConn.setProxy("10.101.20.21", 8888, "http");
+            
+            AConn.setProxy("10.95.17.46", 8080, "http");
+            
+        }
     }
     
     /**

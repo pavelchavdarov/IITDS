@@ -30,7 +30,10 @@ public class IITDAO
     
     private IitAuth auth;
     private IitWorkflow workflow;
-    private static ArrayList<String> statList;
+    private IitDocumentPackageList packageList;
+    //private static ArrayList<String> statList;
+    
+    
     //private String[] docMandatoryFields;
 //    private IitConsumer wfConsumer;
     
@@ -57,9 +60,11 @@ public class IITDAO
     
     public IITDAO(){
         this.gson = new Gson();
+        IitEntity.Init();
         auth = new IitAuth();
         this.workflow = new IitWorkflow();
-        statList= new ArrayList<String>();
+//        statList= new ArrayList<String>();
+        packageList = new IitDocumentPackageList();
 //        SessionToken = "";
         DAO = this;
     }
@@ -152,13 +157,13 @@ public class IITDAO
 //////////////////////////////////////    
     public static void main(String[] args) throws Exception{
         
-        String uData = "^~last_name~ФАХРЕТДИНОВ~^^~first_name~АЙРАТ~^^~middle_name~РИНАТОВИЧ~^^~birthed~1985-06-22~^^~phone~79177978047~^^~gender~M~^";
-        String uDocData = "^~type~internal-passport~^^~series~8005~^^~number~827104~^^~issue_code~022-001~^^~issue~ДЕМСКИМ РОВД ГОР. УФЫ РЕСП. БАШКОРТОСТАН~^^~issued~2005-07-13~^";
-        String uAddrData = "^~type~permanent~^^~region~02~^^~city~Уфа~^^~street~Ухтомского~^^~house~22~^^~apartment~90~^";
-        
-//        String uData = "^~last_name~Чавдаров~^^~first_name~Павел~^^~middle_name~Георгиевич~^^~birthed~1984-08-22~^^~phone~79177978047~^^~gender~M~^";
-//        String uDocData = "^~type~internal-passport~^^~series~8005~^^~number~812008~^^~issue_code~022-005~^^~issue~Орджоникидзевский РОВД Г. УФЫ~^^~issued~2005-04-14~^";
-//        String uAddrData ="";// "^~type~permanent~^^~region~02~^^~city~Уфа~^^~street~Комсомольская~^^~house~21~^^~apartment~18~^";
+//        String uData = "^~last_name~Фахретдинов~^^~first_name~АЙРАТ~^^~middle_name~РИНАТОВИЧ~^^~birthed~1985-07-22~^^~phone~79177978047~^^~gender~M~^";
+//        String uDocData = "^~type~internal-passport~^^~series~8005~^^~number~827104~^^~issue_code~022-001~^^~issue~ДЕМСКИМ РОВД ГОР. УФЫ РЕСП. БАШКОРТОСТАН~^^~issued~2005-07-13~^";
+//        String uAddrData = "^~type~permanent~^^~region~02~^^~city~Уфа~^^~street~Ухтомского~^^~house~22~^^~apartment~90~^";
+//        
+        String uData = "^~last_name~Чавдароф~^^~first_name~Павел~^^~middle_name~Георгиевич~^^~birthed~1984-08-22~^^~phone~79177978047~^^~gender~M~^";
+        String uDocData = "^~type~internal-passport~^^~series~8005~^^~number~812008~^^~issue_code~022-005~^^~issue~Орджоникидзевский РОВД Г. УФЫ~^^~issued~2005-04-14~^";
+        String uAddrData ="";// "^~type~permanent~^^~region~02~^^~city~Уфа~^^~street~Комсомольская~^^~house~21~^^~apartment~18~^";
 
         String token = makeAuth("deprgs-demo", "321qwe654");
         HashMap<String, String> map = String4CFT.getMap(token);
@@ -166,16 +171,23 @@ public class IITDAO
         String packageList = getDocPackageList(map.get("token"));
         System.out.println("packageList: " + packageList);
         String userId = RegisterClient(uData, uDocData, uAddrData, "35");
-
-        System.out.println("userId: " + userId);
+        
         while(waitWorkflowState().equals("validate-consumer-data")){
             sleep(10000);
         }
         System.out.println(GetSignatureAgreementFIO());
         System.out.println(SendRegDocs("signature-agreement.pdf", "signature-agreement.pdf"));
         
-        System.err.println("RegDocList: " + DAO.workflow.getRegDocList());
-        //System.out.println("docs to sign: " + getDocList());
+        //System.err.println("RegDocList: " + DAO.workflow.getRegDocList());
+        while(!waitWorkflowState().equals("wait-certificate-issue")){
+            sleep(10000);
+        }
+        ComfirmCertificateIssue();
+        while(!waitWorkflowState().equals("wait-order-documents")){
+            sleep(10000);
+        }
+        
+        System.out.println("docs to sign: " + getDocList());
         //System.out.println(SendDocToSign("signature-agreement.pdf"));
     }
 
@@ -196,7 +208,7 @@ public class IITDAO
 //            //ret = String4CFT.setPar(ret, "error", "Токен устарел. Необходимо запустить процедуру аутентификации.");
 //            DAO.SessionToken = token;
 //        }
-        return IitDocumentPackageList.getDocPackagesList();
+        return DAO.packageList.getDocPackagesList();
     }
     
     public static String getDocList(){
@@ -217,9 +229,9 @@ public class IITDAO
 
         String resStr="";
         try{
-            DAO.workflow.createWorkflow(packageId);
+            resStr =DAO.workflow.createWorkflow(packageId);
 
-            resStr = DAO.workflow.createClient(uData, uDocData, uAddrData);
+            DAO.workflow.createClient(uData, uDocData, uAddrData);
         }catch(Exception e){
            e.printStackTrace();
            System.err.println(e.getMessage());
@@ -382,12 +394,12 @@ public class IITDAO
     
     public static String SendRegDocs(Blob passport, Blob agreement){
        
-       return DAO.workflow.uploadDocument(passport, agreement);
+       return DAO.workflow.SendRegDocs(passport, agreement);
     }
     
     public static String SendRegDocs(String passport, String agreement){
        
-       return DAO.workflow.uploadDocument(passport, agreement);
+       return DAO.workflow.SendRegDocs(passport, agreement);
     }
     
     public static String SendDocToSign(String passport){

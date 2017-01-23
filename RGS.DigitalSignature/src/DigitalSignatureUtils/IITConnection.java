@@ -8,7 +8,6 @@ package DigitalSignatureUtils;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.DataOutputStream;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -25,19 +24,6 @@ import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
 import java.sql.Blob;
 import oracle.jdbc.OracleDriver;
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpHost;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.mime.FormBodyPart;
-import org.apache.http.entity.mime.HttpMultipartMode;
-import org.apache.http.entity.mime.MultipartEntityBuilder;
-import org.apache.http.entity.mime.content.FileBody;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
 
 /**
  *
@@ -63,14 +49,14 @@ public class IITConnection implements IITConnectionInterface{
     public void initConnection(String pUrl, String pMethod, String pContentType) throws Exception{
         URL url = null;
         // пока заглушка
-        proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("10.95.17.46", 8080));
- //       proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("10.95.5.19", 8888));
+//        proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("10.95.17.46", 8080));
+        proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("10.95.5.19", 8888));
 //        proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("10.101.20.32", 3128));
-//        proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("10.101.20.21", 8080));
-        System.err.println("Connecting to " + pUrl + " ...");
+//        proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("10.101.20.21", 8888));
+//        System.err.println("Connecting to " + pUrl + " ...");
         url = new URL(pUrl);
 
-        conn = (HttpURLConnection) url.openConnection(Proxy.NO_PROXY);
+        conn = (HttpURLConnection) url.openConnection(proxy);
         conn.setDoInput(true);
         conn.setDoOutput(true);
         conn.setUseCaches(false);
@@ -83,7 +69,7 @@ public class IITConnection implements IITConnectionInterface{
             if(pContentType.equals("application/json"))
                 conn.setRequestProperty("charset", "utf-8");
         }
-        System.err.println("Connection prepared...");
+        
     }
 
     @Override
@@ -93,7 +79,9 @@ public class IITConnection implements IITConnectionInterface{
         BufferedWriter wr = new BufferedWriter (outstream);
         wr.write(pData);
         wr.flush();
-
+        
+        conn.disconnect();
+        
     } 
   
     @Override
@@ -128,8 +116,8 @@ public class IITConnection implements IITConnectionInterface{
             }
             
         }
-        
         conn.disconnect();
+
         return result;
     }
     
@@ -160,67 +148,69 @@ public class IITConnection implements IITConnectionInterface{
         }
         wr.flush();
         wr.close();
+        
+        conn.disconnect();
     }
     
     
-    public String sendFilePut(String uri, String fileName) throws Exception{
+    public String sendFiles(String fileName) throws Exception{
 
         String result = "";
-        char[] cbuf = new char[1];
-        CloseableHttpClient httpClient = HttpClients.createDefault();
-        try{
-            HttpHost target = new HttpHost("iitcloud-demo.iitrust.ru", 443, "https");
-            HttpHost proxy = new HttpHost("10.95.17.46", 8080, "http");
-//            RequestConfig config = RequestConfig.custom().setProxy(proxy).build();
-            RequestConfig config = RequestConfig.custom().build();
-            HttpPut request = new HttpPut("/"+uri);
-            request.setHeader("Content-Type", "multipart/form-data; boundary=----WebKitFormBoundaryP42Bh5cCzeeP8O38");
-            
-            request.setConfig(config);
-            
-            FileBody pdfBody = new FileBody(new File(fileName));
-
-            MultipartEntityBuilder builder = MultipartEntityBuilder.create()
-                    .setBoundary("----WebKitFormBoundaryP42Bh5cCzeeP8O38")
-                    .setMode(HttpMultipartMode.BROWSER_COMPATIBLE)
-                    .addBinaryBody( "path",
-                                    new File(fileName),
-                                    ContentType.create("application/pdf"),
-                                    //ContentType.create("text/plain"),
-                                    null);
-                    //.setBoundary(boundary);
-            
-            
-            HttpEntity reqEntity = builder.build();
-                    
-            request.setEntity(reqEntity);
-            
-            
-            
-//            System.out.println(request.toString());
-//            Header[] headers = request.getAllHeaders();
-//            for(Header h : headers){
-//                System.out.println(h.getName() + " : " + h.getValue());
+//        char[] cbuf = new char[1];
+//        CloseableHttpClient httpClient = HttpClients.createDefault();
+//        try{
+//            HttpHost target = new HttpHost("iitcloud-demo.iitrust.ru", 443, "https");
+//            HttpHost proxy = new HttpHost("10.95.17.46", 8080, "http");
+////            RequestConfig config = RequestConfig.custom().setProxy(proxy).build();
+//            RequestConfig config = RequestConfig.custom().build();
+//            HttpPut request = new HttpPut("/"+uri);
+//            request.setHeader("Content-Type", "multipart/form-data; boundary=----WebKitFormBoundaryP42Bh5cCzeeP8O38");
+//            
+//            request.setConfig(config);
+//            
+//            FileBody pdfBody = new FileBody(new File(fileName));
+//
+//            MultipartEntityBuilder builder = MultipartEntityBuilder.create()
+//                    .setBoundary("----WebKitFormBoundaryP42Bh5cCzeeP8O38")
+//                    .setMode(HttpMultipartMode.BROWSER_COMPATIBLE)
+//                    .addBinaryBody( "path",
+//                                    new File(fileName),
+//                                    ContentType.create("application/pdf"),
+//                                    //ContentType.create("text/plain"),
+//                                    null);
+//                    //.setBoundary(boundary);
+//            
+//            
+//            HttpEntity reqEntity = builder.build();
+//                    
+//            request.setEntity(reqEntity);
+//            
+//            
+//            
+////            System.out.println(request.toString());
+////            Header[] headers = request.getAllHeaders();
+////            for(Header h : headers){
+////                System.out.println(h.getName() + " : " + h.getValue());
+////            }
+//            
+//            CloseableHttpResponse response = httpClient.execute(target, request);
+////            CloseableHttpResponse response = httpClient.execute(request);
+//            try{
+//                HttpEntity resEntity = response.getEntity();
+//                if (resEntity  != null){
+//                    InputStreamReader inStream = new InputStreamReader(resEntity.getContent());
+//                    BufferedReader br = new BufferedReader(inStream);
+//                    while(br.read(cbuf) != -1){
+//                        result+=String.valueOf(cbuf);
+//                    }
+//                }
+//            }finally{
+//                response.close();
 //            }
-            
-            CloseableHttpResponse response = httpClient.execute(target, request);
-//            CloseableHttpResponse response = httpClient.execute(request);
-            try{
-                HttpEntity resEntity = response.getEntity();
-                if (resEntity  != null){
-                    InputStreamReader inStream = new InputStreamReader(resEntity.getContent());
-                    BufferedReader br = new BufferedReader(inStream);
-                    while(br.read(cbuf) != -1){
-                        result+=String.valueOf(cbuf);
-                    }
-                }
-            }finally{
-                response.close();
-            }
-        }finally{
-            httpClient.close();
-        }
-        System.out.println("result: "+result);
+//        }finally{
+//            httpClient.close();
+//        }
+//        System.out.println("result: "+result);
         return result;
     }
     
@@ -458,6 +448,7 @@ public void sendFileToSign(String fileName, String docId) throws Exception{
         }
         outStream.flush();
         System.out.println(retBlob);
+        conn.disconnect();
         return retBlob;
 
         
@@ -504,6 +495,7 @@ public void sendFileToSign(String fileName, String docId) throws Exception{
             rbc.close();
             fos.close();
         }
+        conn.disconnect();
     }
     
     

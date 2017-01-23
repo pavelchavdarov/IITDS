@@ -38,8 +38,7 @@ public class A_Connection implements IITConnectionInterface{
     private String method;
     private String contentType;
     
-    public void IIT_A_Connection(String host, int port, String schema){
-        httpClient = HttpClients.createDefault();
+    public A_Connection(String host, int port, String schema){
         target = new HttpHost(host, port, schema);
         
     }
@@ -56,6 +55,7 @@ public class A_Connection implements IITConnectionInterface{
         this.Uri = Uri;
         this.method = pMethod;
         this.contentType = pContentType;
+        httpClient = HttpClients.createDefault();
     }
     
     @Override
@@ -67,11 +67,11 @@ public class A_Connection implements IITConnectionInterface{
     public void sendFile(Blob pBlob) throws Exception{}
     public void sendFile(String fileName) throws Exception{}
     
-    public String sendFilePut(String uri, String fileName) throws Exception{
+    public String sendFiles(String fileName) throws Exception{
         String result = "";
         char[] cbuf = new char[1];
         try{
-            HttpPut request = new HttpPut("/"+uri);
+            HttpPut request = new HttpPut("/"+this.Uri);
             RequestConfig config;
             if(proxy != null)
                 config = RequestConfig.custom().setProxy(proxy).build();
@@ -105,12 +105,65 @@ public class A_Connection implements IITConnectionInterface{
             }finally{
                 response.close();
             }
-        }finally{
+        }catch(Exception e ){
+            result = String4CFT.setPar(result, "error", e.getMessage());
+        }
+        finally{
             httpClient.close();
         }
         System.out.println("result: "+result);
         return result;
     }
+    
+    public String sendFiles(Blob file) throws Exception{
+        String result = "";
+        char[] cbuf = new char[1];
+        try{
+            HttpPut request = new HttpPut("/"+this.Uri);
+            RequestConfig config;
+            if(proxy != null)
+                config = RequestConfig.custom().setProxy(proxy).build();
+            else
+                config = RequestConfig.custom().build();
+            request.setConfig(config);
+            request.setHeader("Content-Type", contentType + "; boundary=" + boundary);
+            
+            MultipartEntityBuilder builder = MultipartEntityBuilder.create()
+                    .setBoundary(boundary)
+                    .setMode(HttpMultipartMode.BROWSER_COMPATIBLE)
+                    .addBinaryBody( "path",
+                                    file.getBinaryStream(),
+                                    //new File(fileName),
+                                    ContentType.create("application/pdf"),
+                                    null);
+
+            HttpEntity reqEntity = builder.build();
+            request.setEntity(reqEntity);
+
+            CloseableHttpResponse response = httpClient.execute(target, request);
+//            CloseableHttpResponse response = httpClient.execute(request);
+            try{
+                HttpEntity resEntity = response.getEntity();
+                if (resEntity  != null){
+                    InputStreamReader inStream = new InputStreamReader(resEntity.getContent());
+                    BufferedReader br = new BufferedReader(inStream);
+                    while(br.read(cbuf) != -1){
+                        result+=String.valueOf(cbuf);
+                    }
+                }
+            }finally{
+                response.close();
+            }
+        }catch(Exception e ){
+            result = String4CFT.setPar(result, "error", e.getMessage());
+        }
+        finally{
+            httpClient.close();
+        }
+        System.out.println("result: "+result);
+        return result;
+    }
+    
     public Blob getFile() throws Exception{return null;}
     public void getFile(String fileName) throws Exception{}
     public void sendFileToSign(String fileName, String docId) throws Exception{}

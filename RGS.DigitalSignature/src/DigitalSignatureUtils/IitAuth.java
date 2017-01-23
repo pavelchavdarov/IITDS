@@ -48,7 +48,7 @@ public class IitAuth extends IitEntity{
     
      public String makeAuth(String login, String password)
     {
-        Init();
+        //Init();
         
         String method = "POST";
         uri = "api/auth/";
