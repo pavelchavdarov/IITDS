@@ -71,9 +71,9 @@ OCSPaia = yes
 
 ; Encrypted HTTP proxy authenticated with a client certificate
 ; located in the Windows certificate store
-[example-proxy]
+[OTT-proxy]
 client = yes
-accept = 127.0.0.1:8080
+accept = 127.0.0.1:8889
 connect = iitcloud-demo.iitrust.ru:443
 ;engineId = capi
 
