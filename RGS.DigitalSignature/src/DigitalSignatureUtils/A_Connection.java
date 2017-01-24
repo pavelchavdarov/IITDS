@@ -184,7 +184,7 @@ public class A_Connection implements IITConnectionInterface{
                                     file.getBinaryStream(),
                                     //new File(fileName),
                                     ContentType.create("application/pdf"),
-                                    null)
+                                    "file_to_sign.pdf")
                     .addTextBody("document", docId);
 
             HttpEntity reqEntity = builder.build();
