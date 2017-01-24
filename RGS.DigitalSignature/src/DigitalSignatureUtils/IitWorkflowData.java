@@ -7,6 +7,7 @@ package DigitalSignatureUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 /**
  *
@@ -27,7 +28,7 @@ public class IitWorkflowData extends IitEntity{
     protected int agent;
     protected IitConsumer consumerInstance;
     protected IitRegistrationDocument[] regDocs;
-    protected DocToSign[] docsToSign;
+    protected DocTypeForSign[] docsToSign;
 
     IitWorkflowData(){
         //Init();
@@ -527,7 +528,7 @@ class IitIdentity {
 }
 
 
-class DocToSign{
+class DocTypeForSign{
     private String id;
     private String title;
     private Boolean required;
@@ -614,4 +615,116 @@ class DocProperty{
     public void setRegular_expression_value(String regular_expression_value) {
         this.regular_expression_value = regular_expression_value;
     }
+}
+class DocToSign{
+    private String id;
+    private String state;
+    private String path;
+    private String path_with_signature_stamp;
+    private String signature_path;
+    private String company_signature_path;
+    private String type;
+    private String document;
+    protected ArrayList<DocProperty> properties;
+    private String sub_type;
+    private String document_title;
+    private String report_url;
+    private String sms_state;
+
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        public String getState() {
+            return state;
+        }
+
+        public void setState(String state) {
+            this.state = state;
+        }
+
+        public String getPath() {
+            return path;
+        }
+
+        public void setPath(String path) {
+            this.path = path;
+        }
+
+        public String getPath_with_signature_stamp() {
+            return path_with_signature_stamp;
+        }
+
+        public void setPath_with_signature_stamp(String path_with_signature_stamp) {
+            this.path_with_signature_stamp = path_with_signature_stamp;
+        }
+
+        public String getSignature_path() {
+            return signature_path;
+        }
+
+        public void setSignature_path(String signature_path) {
+            this.signature_path = signature_path;
+        }
+
+        public String getCompany_signature_path() {
+            return company_signature_path;
+        }
+
+        public void setCompany_signature_path(String company_signature_path) {
+            this.company_signature_path = company_signature_path;
+        }
+
+        public String getType() {
+            return type;
+        }
+
+        public void setType(String type) {
+            this.type = type;
+        }
+
+        public String getDocument() {
+            return document;
+        }
+
+        public void setDocument(String document) {
+            this.document = document;
+        }
+
+        public String getSub_type() {
+            return sub_type;
+        }
+
+        public void setSub_type(String sub_type) {
+            this.sub_type = sub_type;
+        }
+
+        public String getDocument_title() {
+            return document_title;
+        }
+
+        public void setDocument_title(String document_title) {
+            this.document_title = document_title;
+        }
+
+        public String getReport_url() {
+            return report_url;
+        }
+
+        public void setReport_url(String report_url) {
+            this.report_url = report_url;
+        }
+
+        public String getSms_state() {
+            return sms_state;
+        }
+
+        public void setSms_state(String sms_state) {
+            this.sms_state = sms_state;
+        }
+        
 }

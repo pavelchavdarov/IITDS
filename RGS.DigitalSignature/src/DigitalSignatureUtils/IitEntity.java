@@ -31,11 +31,9 @@ public class IitEntity {
             IitEntity.gson = new Gson();
         if (IitEntity.AConn == null){
             IitEntity.AConn = new A_Connection("iitcloud-demo.iitrust.ru", 80, "http");
-//           AConn.setProxy("10.95.5.19", 8888, "http");
-//            AConn.setProxy("10.101.20.21", 8888, "http");
-            AConn.setProxy("127.0.0.1", 8080, "http");            
- //           AConn.setProxy("10.95.17.46", 8080, "http");
-            
+//            AConn.setProxy("127.0.0.1", 8080, "http");            
+            AConn.setProxy("10.95.5.19", 8889, "http");            
+          
         }
     }
     

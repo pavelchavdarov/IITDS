@@ -23,6 +23,7 @@ import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
 import java.sql.Blob;
+
 import oracle.jdbc.OracleDriver;
 
 /**
@@ -45,17 +46,15 @@ public class IITConnection implements IITConnectionInterface{
         
     }
     
+    public Blob getFile(String url) throws Exception{return null;}
+        
     @Override
     public void initConnection(String pUrl, String pMethod, String pContentType) throws Exception{
         URL url = null;
         // пока заглушка
-//        proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("10.95.17.46", 8080));
-        proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("127.0.0.1", 8080));        
-//        proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("10.95.5.19", 8888));
-//        proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("127.0.0.1", 8888));        
-//        proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("10.101.20.32", 3128));
-//        proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("10.101.20.21", 8888));
-//        System.err.println("Connecting to " + pUrl + " ...");
+//        proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("127.0.0.1", 8080));        
+        proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("10.95.5.19", 8889));
+
         url = new URL(pUrl);
 
         conn = (HttpURLConnection) url.openConnection(proxy);
@@ -216,7 +215,7 @@ public class IITConnection implements IITConnectionInterface{
         return result;
     }
     
-    public void sendFile(String fileName) throws Exception{
+    public void sendFileIO(String fileName) throws Exception{
         final String ContentDisposition = "Content-Disposition: form-data; name=\"path\"; filename=\"\"";
         final String ContentType = "Content-Type: multipart/pdf";
         final String CRLF = "\r\n"; 
@@ -325,7 +324,8 @@ public String sendDoc(Blob file, String docId) throws Exception{
     public Blob getFile() throws Exception{
         
         oracle.jdbc.OracleConnection oraConn =
-                (oracle.jdbc.OracleConnection)new OracleDriver().defaultConnection();
+//(oracle.jdbc.OracleConnection)DriverManager.getConnection("jdbc:oracle:thin:@test03.msk.russb.org:1521:rbotest2","ibs","12ibs");                
+            (oracle.jdbc.OracleConnection)new OracleDriver().defaultConnection();
         oracle.sql.BLOB retBlob =
                 oracle.sql.BLOB.createTemporary(oraConn,
                                                 true,
@@ -351,7 +351,7 @@ public String sendDoc(Blob file, String docId) throws Exception{
         return retBlob;
     }
     
-    public void getFile(String fileName) throws Exception{
+    public void getFileIO(String fileName) throws Exception{
         if (conn != null) {
             InputStream inStream = conn.getInputStream();
 
