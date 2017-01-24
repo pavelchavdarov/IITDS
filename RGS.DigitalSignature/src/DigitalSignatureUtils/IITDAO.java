@@ -13,6 +13,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import oracle.jdbc.OracleDriver;
 
 /**
@@ -134,7 +136,12 @@ public class IITDAO
     public static String ComfirmOrder() throws Exception{
         String resStr = "";
         try{
-            resStr = DAO.workflow.setWorkflowState("order-confirm");   
+            resStr = DAO.workflow.setWorkflowState("order-confirm");
+//            resStr = waitWorkflowState();
+//            while(!resStr.equals("complete")){
+//                sleep(10000);
+//                resStr = waitWorkflowState();
+//            }
         }catch(Exception e){
             resStr = String4CFT.setPar(resStr, "error", e.getMessage());
         }
@@ -204,7 +211,7 @@ public class IITDAO
         }
         System.out.println("workflowId :" + getWorkflowId());
         System.out.println("docs to sign: " + getDocList());
-        System.out.println(SendDocToSign("signature-agreement.pdf", "43"));
+//        System.out.println(SendDocToSign("signature-agreement.pdf", "43"));
         System.out.println(SendDocToSign("signature-agreement.pdf", "44"));
         
         while(!waitWorkflowState().equals("wait-order-confirmation")){
@@ -396,8 +403,21 @@ public class IITDAO
     }
     
     public static String SendDocToSign(String doc, String docId){
+       String res = "";
+       res = DAO.workflow.SendDocToSign(doc, docId);
        
-       return DAO.workflow.SendDocToSign(doc, docId);
+ //       try {
+//            res = waitWorkflowState();
+//            while(!res.equals("wait-order-confirmation")){
+//                sleep(10000);
+//                res = waitWorkflowState();
+//            }
+//        } catch (Exception ex) {
+//            Logger.getLogger(IITDAO.class.getName()).log(Level.SEVERE, null, ex);
+//        }
+       
+       return res;
+       
     }
     
     public static String SendDocToSign(Blob doc, String docId){

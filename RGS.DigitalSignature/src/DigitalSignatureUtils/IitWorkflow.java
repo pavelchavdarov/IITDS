@@ -455,7 +455,7 @@ public class IitWorkflow extends IitWorkflowData{
         DocToSign signedDoc = null;
         this.uri = String.format("/api/workflow/%s/file/?token=%s", this.id, this.SessionToken);
         try{
-            AConn.initConnection(uri, "POST", "multipart/form-data");
+            AConn.initConnection(uri, "GET", "multipart/form-data");
             retJson = AConn.getDocData();
             JsonParser parser = new JsonParser();
             JsonArray jArray = parser.parse(retJson).getAsJsonArray();
@@ -463,6 +463,7 @@ public class IitWorkflow extends IitWorkflowData{
             while(it.hasNext()){
                 signedDoc = gson.fromJson((JsonElement)it.next(), DocToSign.class);
                 ret = String4CFT.setPar(ret, "id", signedDoc.getId());
+                ret = String4CFT.setPar(ret, "state", signedDoc.getState());
                 ret = String4CFT.setPar(ret, "path", signedDoc.getPath());
                 ret = String4CFT.setPar(ret, "path_with_signature_stamp", 
                                     signedDoc.getPath_with_signature_stamp());
