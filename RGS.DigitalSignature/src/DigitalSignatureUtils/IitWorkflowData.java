@@ -7,7 +7,6 @@ package DigitalSignatureUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
 
 /**
  *
@@ -26,9 +25,9 @@ public class IitWorkflowData extends IitEntity{
     protected String packageId;
     protected String company; 
     protected int agent;
-    protected IitConsumer consumerInstance;
-    protected IitRegistrationDocument[] regDocs;
-    protected DocTypeForSign[] docsToSign;
+    IitConsumer consumerInstance;
+    IitRegistrationDocument[] regDocs;
+    DocTypeForSign[] docsToSign;
 
     IitWorkflowData(){
         //Init();
@@ -128,11 +127,11 @@ public class IitWorkflowData extends IitEntity{
         this.agent = agent;
     }
 
-    public IitConsumer getConsumerInstance() {
+    IitConsumer getConsumerInstance() {
         return consumerInstance;
     }
 
-    public void setConsumerInstance(IitConsumer consumerInstance) {
+    void setConsumerInstance(IitConsumer consumerInstance) {
         this.consumerInstance = consumerInstance;
     }
 
@@ -383,22 +382,6 @@ class IitConsumer {
     public void setInn(String inn) {
         this.inn = inn;
     }
-
-//    public IitIdentity[] getIdentities() {
-//        return identities;
-//    }
-//
-//    public void setIdentities(IitIdentity[] identities) {
-//        this.identities = identities;
-//    }
-//
-//    public IitAddress[] getAddresses() {
-//        return addresses;
-//    }
-//
-//    public void setAddresses(IitAddress[] addresses) {
-//        this.addresses = addresses;
-//    }
 }
 
 

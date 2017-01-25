@@ -5,12 +5,6 @@
  */
 package DigitalSignatureUtils;
 
-import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-
 /**
  *
  * @author p.chavdarov
@@ -26,13 +20,13 @@ public class IitAuth extends IitEntity{
     {
         Init();
         
-        String method = "POST";
+        method = "POST";
         uri = "api/auth/";
         IitToken token;
         authRequest auth  = new authRequest(login, password);
         //String res = "";
         
-        String url_str = String.format("%s/%s", IitAuth.url, uri);
+        url_str = String.format("%s/%s", IitAuth.URL, uri);
         String json_str = gson.toJson(auth, authRequest.class);
         iitConn = new IITConnection(url_str, method, "application/json");
 
@@ -43,23 +37,20 @@ public class IitAuth extends IitEntity{
         token = gson.fromJson(result, IitToken.class);
 
         SessionToken = token.getToken();//conn.getData();
-        System.err.println("Authentication result: token " + SessionToken);
+        log("Authentication result: token " + SessionToken);
     }
     
      public String makeAuth(String login, String password)
     {
         //Init();
         
-        String method = "POST";
+        method = "POST";
         uri = "api/auth/";
         IitToken token;
         authRequest auth  = new authRequest(login, password);
         String res = "";
-        
-        String url_str = String.format("%s/%s", IitAuth.url, uri);
+        url_str = String.format("%s/%s", IitAuth.URL, uri);
         String json_str = gson.toJson(auth, authRequest.class);
-
-        
         try{
             iitConn = new IITConnection(url_str, method, "application/json");
             
@@ -67,11 +58,9 @@ public class IitAuth extends IitEntity{
             token = gson.fromJson(iitConn.getData(), IitToken.class);
 
             SessionToken = token.getToken();//conn.getData();
-            System.out.println("Authentication result: token passed");
             res =  String4CFT.setPar(res,"token", SessionToken);//"Authentication result: token passed";
-//            res = String4CFT.setPar(res,"error", "");
         }catch(Exception ex){
-            System.err.println(ex.getMessage());
+            log(ex.getMessage());
             SessionToken = null;
             res = String4CFT.setPar(res,"error", ex.getMessage());
         }
@@ -84,7 +73,7 @@ public class IitAuth extends IitEntity{
  * Класс создал для описания структуры json при аутентификации
  * @author Павел
  */
-class authRequest {
+final class authRequest {
     
     private String username;
     private String password;

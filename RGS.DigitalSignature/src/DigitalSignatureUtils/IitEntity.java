@@ -6,8 +6,7 @@
 package DigitalSignatureUtils;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import java.util.Date;
 
 /**
  *
@@ -15,25 +14,28 @@ import com.google.gson.JsonParser;
  */
 public class IitEntity {
     protected static Gson gson;
-    protected static final String url = "http://iitcloud-demo.iitrust.ru";
+    protected static final String URL = "http://iitcloud-demo.iitrust.ru";
 
-    
-
-    protected IITConnectionInterface iitConn;
-    protected String method;
-    protected String uri;
-    protected String url_str;
+    IITConnectionInterface iitConn;
+    String method;
+    String uri;
+    String url_str;
     protected static String SessionToken;
     protected static A_Connection AConn;
 
+    private static final boolean DEBUG = false;
+    
+    void log(String msg){
+        if(DEBUG)
+            System.out.println("[" + new Date() + "]: " + msg);
+    }
+    
     public static void Init(){
         if (IitEntity.gson == null)
             IitEntity.gson = new Gson();
         if (IitEntity.AConn == null){
             IitEntity.AConn = new A_Connection("iitcloud-demo.iitrust.ru", 80, "http");
-//            AConn.setProxy("127.0.0.1", 8080, "http");            
             AConn.setProxy("10.95.5.19", 8889, "http");            
-          
         }
     }
     
@@ -55,8 +57,7 @@ public class IitEntity {
         IitEntity.gson = gson;
     }
 
-    
-        /**
+    /**
      * Get the value of SessionToken
      *
      * @return the value of SessionToken
@@ -71,16 +72,6 @@ public class IitEntity {
      * @param SessionToken new value of SessionToken
      */
     public void setSessionToken(String SessionToken) {
-        this.SessionToken = SessionToken;
+        IitEntity.SessionToken = SessionToken;
     }
-    
-//    public static void checkErrorInResponse(String responce) throws Exception{
-//        JsonParser jParser = new JsonParser();
-//        JsonObject jObj = (JsonObject)jParser.parse(responce);
-//        if (jObj != null && jObj.has("detail")){
-//            Exception ex = new Exception(jObj.get("detail").getAsString());
-//            throw ex;
-//        }
-//    }
-    
 }

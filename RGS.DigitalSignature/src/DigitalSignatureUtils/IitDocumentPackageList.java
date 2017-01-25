@@ -7,8 +7,6 @@
 package DigitalSignatureUtils;
 
 import com.google.gson.reflect.TypeToken;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  *
@@ -22,19 +20,17 @@ public class IitDocumentPackageList extends IitEntity{
     }
         
     public String getDocPackagesList() {
-        //url = "http://iitcloud-demo.iitrust.ru";
-        String method = "GET";
+        method = "GET";
         String page = "api/agent/document/package/";
         java.lang.reflect.Type itemsArrType = new TypeToken<DigitalSignatureUtils.IitDocumentPackage[]>() {}.getType();
 
         String res="";
-        String url_str = String.format("%s/%s?token=%s", url, page,SessionToken);
+        url_str = String.format("%s/%s?token=%s", URL, page,SessionToken);
         try{
             iitConn = new IITConnection(url_str, method, "application/json");
             String answer = iitConn.getData();
-            System.err.println("response: "+ answer);
+            log("response: "+ answer);
             IitDocumentPackage[] packageList = gson.fromJson(answer, itemsArrType);
-    //        ArrayList<IitDocumentPackage> packageList = (ArrayList<IitDocumentPackage>)gson.fromJson(answer, ArrayList.class);
             for (IitDocumentPackage p : packageList){
                 res = String4CFT.setPar(res, "id", String.valueOf(p.getId()));
                 res = String4CFT.setPar(res, "title", String.valueOf(p.getTitle()));
