@@ -6,6 +6,7 @@
 package DigitalSignatureUtils;
 
 import java.sql.Blob;
+import java.util.Map;
 
 /**
  *
@@ -22,6 +23,8 @@ interface IITConnectionInterface{
   public Blob getFile(String url) throws Exception;
   public void getFileIO(String fileName) throws Exception;
   public String sendDoc(String fileName, String docId) throws Exception;
+  public String sendDocWithProps(String fileName, String docId, Map<String,String> props) throws Exception;
   public String sendDoc(Blob file, String docId) throws Exception;
+  public String sendDocWithProps(Blob file, String docId, Map<String,String> props) throws Exception;
   
 }

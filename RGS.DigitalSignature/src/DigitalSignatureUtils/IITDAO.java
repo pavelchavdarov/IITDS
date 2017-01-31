@@ -6,11 +6,13 @@
 package DigitalSignatureUtils;
 
 import java.io.OutputStream;
+import static java.lang.Thread.sleep;
 //import static java.lang.Thread.sleep;
 import java.sql.Blob;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import oracle.jdbc.OracleDriver;
 
 /**
@@ -33,7 +35,7 @@ public class IITDAO
         DAO = this;
     }
     
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = true;
     
     static void log(String msg){
         if(DEBUG)
@@ -135,52 +137,52 @@ public class IITDAO
 
     public static void main(String[] args) throws Exception{
         
-//////        String uData = "^~last_name~Иванов~^^~first_name~Иван~^^~middle_name~Иванович~^^~birthed~1984-08-22~^^~phone~79177978047~^^~gender~M~^";
-//////        String uDocData = "^~type~internal-passport~^^~series~8005~^^~number~812008~^^~issue_code~022-005~^^~issue~Орджоникидзевский РОВД Г. УФЫ~^^~issued~2005-04-14~^";
-//////        String uAddrData ="";// "^~type~permanent~^^~region~02~^^~city~Уфа~^^~street~Комсомольская~^^~house~21~^^~apartment~18~^";
-//////
-//////        String token = makeAuth("deprgs-demo", "321qwe654");
-//////        HashMap<String, String> map = String4CFT.getMap(token);
-//////        System.out.println(token);
-//////        String packageList = getDocPackageList(map.get("token"));
-//////        System.out.println("packageList: " + packageList);
-//////        String wfId = RegisterClient(uData, uDocData, uAddrData, "35");
-//////        System.out.print("workflow id: " + wfId);
-//////        String wfState = waitWorkflowState();
-//////        while(wfState.equals("validate-consumer-data")){
-//////            sleep(10000);
-//////            wfState = waitWorkflowState();
-//////        }
-//////        if (wfState.equals("wait-confirmation-documents-and-sms")){
-//////            System.out.println(GetSignatureAgreementFIO());
-//////
-//////            System.out.println(SendRegDocs("signature-agreement.pdf", "signature-agreement.pdf"));
-//////
-//////            //log("RegDocList: " + DAO.workflow.getRegDocList());
-//////            while(!waitWorkflowState().equals("wait-certificate-issue")){
-//////                sleep(10000);
-//////            }
-//////            ComfirmCertificateIssue();
-//////            while(!waitWorkflowState().equals("wait-order-documents")){
-//////                sleep(10000);
-//////            }
-//////        }
-//////        System.out.println("workflowId :" + getWorkflowId());
-//////        System.out.println("docs to sign: " + getDocList());
-//////        System.out.println(SendDocToSign("signature-agreement.pdf", "44"));
-//////        
-//////        while(!waitWorkflowState().equals("wait-order-confirmation")){
-//////            sleep(10000);
-//////        }
-//////        ComfirmOrder();
-//////        while(!waitWorkflowState().equals("order-sign")){
-//////            sleep(10000);
-//////        }
-//////        while(!waitWorkflowState().equals("complete")){
-//////            sleep(10000);
-//////        }
-//////        
-//////        System.out.println(GetSignedDocData());
+        String uData = "^~last_name~Иванов~^^~first_name~Петро~^^~middle_name~Иванович~^^~birthed~1984-08-22~^^~phone~79177978047~^^~gender~M~^";
+        String uDocData = "^~type~internal-passport~^^~series~8005~^^~number~812008~^^~issue_code~022-005~^^~issue~Орджоникидзевский РОВД Г. УФЫ~^^~issued~2005-04-14~^";
+        String uAddrData ="";// "^~type~permanent~^^~region~02~^^~city~Уфа~^^~street~Комсомольская~^^~house~21~^^~apartment~18~^";
+
+        String token = makeAuth("deprgs-demo", "321qwe654");
+        HashMap<String, String> map = String4CFT.getMap(token);
+        System.out.println(token);
+        String packageList = getDocPackageList(map.get("token"));
+        System.out.println("packageList: " + packageList);
+        String wfId = RegisterClient(uData, uDocData, uAddrData, "35");
+        System.out.print("workflow id: " + wfId);
+//        String wfState = waitWorkflowState();
+//        while(wfState.equals("validate-consumer-data")){
+//            sleep(10000);
+//            wfState = waitWorkflowState();
+//        }
+//        if (wfState.equals("wait-confirmation-documents-and-sms")){
+//            System.out.println(GetSignatureAgreementFIO());
+//
+//            System.out.println(SendRegDocs("signature-agreement.pdf", "signature-agreement.pdf"));
+//
+//            //log("RegDocList: " + DAO.workflow.getRegDocList());
+//            while(!waitWorkflowState().equals("wait-certificate-issue")){
+//                sleep(10000);
+//            }
+//            ComfirmCertificateIssue();
+//            while(!waitWorkflowState().equals("wait-order-documents")){
+//                sleep(10000);
+//            }
+//        }
+        System.out.println("workflowId :" + getWorkflowId());
+        System.out.println("docs to sign: " + getDocList());
+        System.out.println(SendDocToSign("signature-agreement.pdf", "44", "30.01.2017","123-456","100000","30.5"));
+        
+        while(!waitWorkflowState().equals("wait-order-confirmation")){
+            sleep(10000);
+        }
+        ComfirmOrder();
+        while(!waitWorkflowState().equals("order-sign")){
+            sleep(10000);
+        }
+        while(!waitWorkflowState().equals("complete")){
+            sleep(10000);
+        }
+        
+        System.out.println(GetSignedDocData());
 //////        
 //////        makeAuth("deprgs-demo", "321qwe654");
 //////        getSignedDocByWf("2860");
@@ -304,8 +306,8 @@ public class IITDAO
        return DAO.workflow.SendRegDocs(passport, agreement);
     }
     
-    public static String SendDocToSign(String doc, String docId){
-       return DAO.workflow.SendDocToSign(doc, docId);
+    public static String SendDocToSign(String doc, String docId, String date, String num, String sum, String prc){
+       return DAO.workflow.SendDocToSign(doc, docId, date, num, sum, prc);
     }
     
     public static String SendDocToSign(Blob doc, String docId){

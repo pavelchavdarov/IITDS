@@ -18,6 +18,7 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
 import java.sql.Blob;
 import java.sql.SQLException;
+import java.util.Map;
 import oracle.jdbc.OracleDriver;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
@@ -173,6 +174,48 @@ public class A_Connection implements IITConnectionInterface{
     }
     
     @Override
+    public String sendDocWithProps(Blob file, String docId, Map<String,String> doc_props) throws Exception{
+        String result = "";
+        try{
+            HttpPost request = new HttpPost(this.Uri);
+            RequestConfig config;
+            if(proxy != null)
+                config = RequestConfig.custom().setProxy(proxy).build();
+            else
+                config = RequestConfig.custom().build();
+            request.setConfig(config);
+            request.setHeader("Content-Type", contentType + "; boundary=" + BOUNDARY);
+            
+            MultipartEntityBuilder builder = MultipartEntityBuilder.create()
+                    .setBoundary(BOUNDARY)
+                    .setMode(HttpMultipartMode.BROWSER_COMPATIBLE)
+                    .addBinaryBody( "path",
+                                    file.getBinaryStream(),
+                                    ContentType.create("application/pdf"),
+                                    "file_to_sign.pdf")
+                    .addTextBody("document", docId);
+            
+            
+            for(String prop_id: doc_props.keySet())
+                builder.addTextBody("property_"+prop_id, doc_props.get(prop_id));
+
+            HttpEntity reqEntity = builder.build();
+            request.setEntity(reqEntity);
+
+            CloseableHttpResponse response = httpClient.execute(target, request);
+            result = getResponse(response);
+        }catch(IOException e ){
+            result = String4CFT.setPar(result, "error", e.getMessage());
+        } catch (SQLException e) {
+            result = String4CFT.setPar(result, "error", e.getMessage());
+        }
+        finally{
+            httpClient.close();
+        }
+        return result;
+    }
+    
+    @Override
     public String sendDoc(Blob file, String docId) throws Exception{
         String result = "";
         try{
@@ -193,7 +236,7 @@ public class A_Connection implements IITConnectionInterface{
                                     ContentType.create("application/pdf"),
                                     "file_to_sign.pdf")
                     .addTextBody("document", docId);
-
+            
             HttpEntity reqEntity = builder.build();
             request.setEntity(reqEntity);
 
@@ -233,6 +276,46 @@ public class A_Connection implements IITConnectionInterface{
                                     null)
                     .addTextBody("document", docId);
 
+            HttpEntity reqEntity = builder.build();
+            request.setEntity(reqEntity);
+
+            CloseableHttpResponse response = httpClient.execute(target, request);
+            result = getResponse(response);
+        }catch(IOException e ){
+            result = String4CFT.setPar(result, "error", e.getMessage());
+        }
+        finally{
+            httpClient.close();
+        }
+        return result;
+    }
+    
+    @Override
+    public String sendDocWithProps(String fileName, String docId, Map<String,String> doc_props) throws Exception{
+        String result = "";
+        try{
+            HttpPost request = new HttpPost(this.Uri);
+            RequestConfig config;
+            if(proxy != null)
+                config = RequestConfig.custom().setProxy(proxy).build();
+            else
+                config = RequestConfig.custom().build();
+            request.setConfig(config);
+            request.setHeader("Content-Type", contentType + "; boundary=" + BOUNDARY);
+            
+            MultipartEntityBuilder builder = MultipartEntityBuilder.create()
+                    .setBoundary(BOUNDARY)
+                    .setMode(HttpMultipartMode.BROWSER_COMPATIBLE)
+                    .addBinaryBody( "path",
+                                    new File(fileName),
+                                    //new File(fileName),
+                                    ContentType.create("application/pdf"),
+                                    null)
+                    .addTextBody("document", docId);
+
+            for(String prop_id: doc_props.keySet())
+                builder.addTextBody("property_"+prop_id, doc_props.get(prop_id));
+            
             HttpEntity reqEntity = builder.build();
             request.setEntity(reqEntity);
 

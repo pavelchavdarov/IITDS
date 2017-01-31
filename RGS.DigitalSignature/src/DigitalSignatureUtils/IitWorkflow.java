@@ -309,7 +309,7 @@ public class IitWorkflow extends IitWorkflowData{
         this.url_str = String.format("%s/%s?token=%s", IitWorkflow.URL, this.uri, IitWorkflow.SessionToken);
         
         iitConn = new IITConnection(this.url_str, method, "");
-        iitConn.getFile(schema_url + "." + fileSuffix);
+        iitConn.getFileIO(schema_url + "." + fileSuffix);
         
     }
     
@@ -366,27 +366,49 @@ public class IitWorkflow extends IitWorkflowData{
         return ret;
     }
     
-    public String SendDocToSign(String docName, String docId){
+    public String SendDocToSign(String docName, String... doc_parameters){
         this.method = "POST";
         String ret = "";
         this.uri = String.format("/api/workflow/%s/file/?token=%s", this.id, IitWorkflow.SessionToken);
         try{
+            HashMap<String, String> props = new HashMap<String, String>();
+            
+            for(DocTypeForSign d: docsToSign){
+                if(d.getId().equals(doc_parameters[0])){
+                    int i = 1;
+                    for(DocProperty prop: d.properties)
+                        props.put(prop.getId(), doc_parameters[i++]);
+                }
+                    
+            }
             AConn.initConnection(uri, "POST", "multipart/form-data");
-            ret = AConn.sendDoc(docName, docId);
+            ret = AConn.sendDocWithProps(docName, doc_parameters[0], props);
         
         }catch(Exception e){
             ret = String4CFT.setPar(ret, "error", e.getMessage());
         }
         return ret;
     }
-    
-    public String SendDocToSign(Blob doc, String docId){
+    // doc_parameters[0] -- doc_id, doc_parameters[1..] -- document properties
+    public String SendDocToSign(Blob doc, String... doc_parameters){
         this.method = "POST";
         String ret = "";
         this.uri = String.format("/api/workflow/%s/file/?token=%s", this.id, IitWorkflow.SessionToken);
         try{
+            
+            HashMap<String, String> props = new HashMap<String, String>();
+            
+            for(DocTypeForSign d: docsToSign){
+                if(d.getId()==doc_parameters[0]){
+                    int i = 1;
+                    for(DocProperty prop: d.properties)
+                        props.put(prop.getId(), doc_parameters[i++]);
+                }
+                    
+            }
+            
             AConn.initConnection(uri, "POST", "multipart/form-data");
-            ret = AConn.sendDoc(doc, docId);
+            ret = AConn.sendDocWithProps(doc, doc_parameters[0], props);
         
         }catch(Exception e){
             ret = String4CFT.setPar(ret, "error", e.getMessage());

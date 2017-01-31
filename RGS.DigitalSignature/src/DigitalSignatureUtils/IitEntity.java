@@ -23,7 +23,7 @@ public class IitEntity {
     protected static String SessionToken;
     protected static A_Connection AConn;
 
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = true;
     
     void log(String msg){
         if(DEBUG)

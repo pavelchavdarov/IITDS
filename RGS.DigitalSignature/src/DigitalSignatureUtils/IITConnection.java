@@ -20,6 +20,7 @@ import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.sql.Blob;
+import java.util.Map;
 
 import oracle.jdbc.OracleDriver;
 
@@ -178,6 +179,16 @@ public final class IITConnection implements IITConnectionInterface{
             fos.close();
         }
         conn.disconnect();
+    }
+
+    @Override
+    public String sendDocWithProps(Blob file, String docId, Map<String, String> props) throws Exception {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public String sendDocWithProps(String fileName, String docId, Map<String, String> props) throws Exception {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
 }
