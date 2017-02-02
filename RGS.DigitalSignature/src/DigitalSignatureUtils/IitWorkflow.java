@@ -12,6 +12,9 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
 import java.sql.Blob;
+import java.util.Collection;
+import java.util.Collections;
+import static java.util.Collections.sort;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -399,8 +402,9 @@ public class IitWorkflow extends IitWorkflowData{
             HashMap<String, String> props = new HashMap<String, String>();
             
             for(DocTypeForSign d: docsToSign){
-                if(d.getId()==doc_parameters[0]){
+                if(d.getId().equals(doc_parameters[0])){
                     int i = 1;
+                    Collections.sort(d.properties);
                     for(DocProperty prop: d.properties)
                         props.put(prop.getId(), doc_parameters[i++]);
                 }

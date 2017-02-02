@@ -516,7 +516,7 @@ class DocTypeForSign{
     private String title;
     private Boolean required;
     private Boolean unlimited;
-    protected ArrayList<DocProperty> properties;
+    protected List<DocProperty> properties;
 
     public String getId() {
         return id;
@@ -549,10 +549,10 @@ class DocTypeForSign{
     public void setUnlimited(Boolean unlimited) {
         this.unlimited = unlimited;
     }
-   
-}
 
-class DocProperty{
+    }
+   
+class DocProperty implements Comparable<DocProperty>{
     private String id;
     private String title;
     private String type;
@@ -597,6 +597,11 @@ class DocProperty{
 
     public void setRegular_expression_value(String regular_expression_value) {
         this.regular_expression_value = regular_expression_value;
+    }
+
+    @Override
+    public int compareTo(DocProperty o) {
+        return (Integer.valueOf(id) - Integer.valueOf(o.id));
     }
 }
 class DocToSign{
